@@ -15,7 +15,7 @@ import Playlists from './pages/Playlist/Playlists';
 import Perfil from './pages/Perfil/Perfil';
 import Estadisticas from './pages/Estadisticas/Estadisticas';
 import Login from './pages/Login/Login';
-import NotFound from './pages/NotFound/NotFound';
+import Registro from './pages/Registro/Registro'
 
 import './styles/global.css';
 import './styles/variables.css';
@@ -43,6 +43,7 @@ const App: React.FC = () => {
           <Routes>
             {/* Ruta Pública */}
             <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
 
             {/* Rutas Protegidas dentro del MainLayout */}
             <Route element={<ProtectedRoute />}>
@@ -57,9 +58,6 @@ const App: React.FC = () => {
                 <Route path="/estadisticas" element={<Estadisticas />} />
               </Route>
             </Route>
-
-            {/* Ruta 404 */}
-            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </PlayerProvider>
