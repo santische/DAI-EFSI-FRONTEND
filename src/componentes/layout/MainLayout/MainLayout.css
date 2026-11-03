@@ -1,0 +1,24 @@
+.main-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--fondo);
+  color: var(--blanco);
+  overflow: hidden;
+}
+
+.layout-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--fondo-secundario);
+}
+
+.page-container {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

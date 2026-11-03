@@ -1,0 +1,57 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+
+
+  /* Colores principales */
+  color: #f5f3fa;
+  background-color: #111014;
+
+
+  --fondo: #111014;
+  --fondo-secundario: #19171f;
+  --fondo-tarjeta: #211e29;
+
+
+  --lila: #b99aff;
+  --lila-oscuro: #8060c9;
+  --amarillo: #f4e85b;
+
+
+  --blanco: #f5f3fa;
+  --gris: #a7a2b1;
+  --borde: #302b39;
+
+
+  /* Nuevas variables */
+  --fondo-input: #19171f;
+  --fondo-input-hover: #25212e;
+
+
+  --texto-principal: #f5f3fa;
+  --texto-secundario: #a7a2b1;
+  --texto-placeholder: #777180;
+
+
+  --borde-enfocado: #b99aff;
+
+
+  --amarillo-hover: #e8dc4d;
+  --lila-hover: #a985f5;
+
+
+  /* Sombras */
+  --sombra-suave: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+
+  /* Bordes redondeados */
+  --radio-chico: 8px;
+  --radio-medio: 12px;
+  --radio-grande: 20px;
+
+
+  /* Transiciones */
+  --transicion: 0.2s ease;
+}
+
+
+

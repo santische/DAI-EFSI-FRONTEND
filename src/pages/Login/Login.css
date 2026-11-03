@@ -1,0 +1,283 @@
+
+
+.login-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: var(--fondo);
+}
+
+
+/* PANEL IZQUIERDO */
+
+
+.login-panel {
+  background-color: var(--amarillo);
+  color: var(--fondo);
+  padding: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+
+
+.login-decoracion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 180px;
+}
+
+
+.audio-barra {
+  width: 90px;
+  height: 150px;
+  border-radius: var(--radio-grande);
+  background-color: var(--fondo);
+  transform: rotate(15deg);
+}
+
+
+.audio-barra-secundaria {
+  width: 35px;
+  height: 110px;
+  border-radius: var(--radio-grande);
+  background-color: var(--lila-oscuro);
+  transform: rotate(15deg);
+}
+
+
+.panel-texto {
+  max-width: 480px;
+}
+
+
+.panel-texto h1 {
+  font-size: clamp(42px, 5vw, 68px);
+  line-height: 1.05;
+  margin: 0 0 24px;
+  font-weight: 700;
+}
+
+
+.panel-texto p {
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 380px;
+  margin: 0;
+}
+
+
+/* PANEL DERECHO */
+
+
+.login-formulario {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px;
+}
+
+
+.login-contenido {
+  width: 100%;
+  max-width: 420px;
+}
+
+
+.login-encabezado {
+  margin-bottom: 42px;
+}
+
+
+.login-encabezado h2 {
+  color: var(--texto-principal);
+  font-size: 34px;
+  margin: 0 0 12px;
+}
+
+
+.login-encabezado p {
+  color: var(--texto-secundario);
+  font-size: 15px;
+  margin: 0;
+}
+
+
+/* CAMPOS DEL FORMULARIO */
+
+
+.campo-login {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+
+.campo-login label {
+  color: var(--texto-secundario);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+
+.campo-login input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-medio);
+  background-color: var(--fondo-input);
+  color: var(--texto-principal);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: var(--transicion);
+}
+
+
+.campo-login input::placeholder {
+  color: var(--texto-placeholder);
+}
+
+
+.campo-login input:focus {
+  border-color: var(--borde-enfocado);
+  background-color: var(--fondo-input-hover);
+}
+
+
+/* BOTÓN PRINCIPAL */
+
+
+.login-boton {
+  width: 100%;
+  padding: 16px;
+  margin-top: 10px;
+  border: none;
+  border-radius: var(--radio-medio);
+  background-color: var(--lila);
+  color: var(--fondo);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transicion);
+}
+
+
+.login-boton:hover {
+  background-color: var(--lila-hover);
+}
+
+
+/* CREAR CUENTA */
+
+
+.crear-cuenta-wrapper {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.crear-cuenta-link {
+  color: var(--amarillo);
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: var(--transicion);
+}
+
+.crear-cuenta-link:hover {
+  text-decoration: underline;
+  color: var(--blanco);
+}
+
+
+/* TEXTO INFERIOR */
+
+
+.login-privacidad {
+  margin-top: 45px;
+  color: var(--gris);
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* RESPONSIVE */
+
+
+@media (max-width: 900px) {
+  .login-container {
+    grid-template-columns: 1fr;
+  }
+
+
+  .login-panel {
+    min-height: 280px;
+    padding: 40px;
+  }
+
+
+  .login-decoracion {
+    height: 80px;
+  }
+
+
+  .audio-barra {
+    width: 45px;
+    height: 75px;
+  }
+
+
+  .audio-barra-secundaria {
+    width: 20px;
+    height: 55px;
+  }
+
+
+  .panel-texto h1 {
+    font-size: 42px;
+  }
+
+
+  .panel-texto p {
+    font-size: 14px;
+  }
+
+
+  .login-formulario {
+    padding: 55px 30px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .login-panel {
+    min-height: 240px;
+    padding: 30px;
+  }
+
+
+  .panel-texto h1 {
+    font-size: 36px;
+  }
+
+
+  .login-formulario {
+    padding: 40px 24px;
+  }
+
+
+  .login-encabezado h2 {
+    font-size: 28px;
+  }
+}
+
+
+
