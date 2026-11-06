@@ -1,27 +1,62 @@
-import React from 'react';
+import React, { ChangeEvent, FormEvent } from 'react';
 import './Buscador.css';
 
 interface BuscadorProps {
-  placeholder?: string;
   valor: string;
-  onChange: (nuevoValor: string) => void;
+  onCambio: (nuevoValor: string) => void;
+  onBuscar?: () => void;
+  placeholder?: string;
 }
 
-const Buscador: React.FC<BuscadorProps> = ({ placeholder = 'Buscar...', valor, onChange }) => {
+export const Buscador: React.FC<BuscadorProps> = ({
+  valor,
+  onCambio,
+  onBuscar,
+  placeholder = 'Buscar canciones, artistas o álbumes...'
+}) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onCambio(e.target.value);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (onBuscar) {
+      onBuscar();
+    }
+  };
+
+  const handleLimpiar = () => {
+    onCambio('');
+  };
+
   return (
-    <div className="buscador-container">
-      <svg className="buscador-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-      <input
-        type="text"
-        className="buscador-input"
-        placeholder={placeholder}
-        value={valor}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
+    <form className="buscador-form" onSubmit={handleSubmit}>
+      <div className="buscador-input-wrapper">
+        <span className="buscador-icono">🔍</span>
+        <input
+          type="text"
+          className="buscador-input"
+          value={valor}
+          onChange={handleChange}
+          placeholder={placeholder}
+        />
+        {valor && (
+          <button
+            type="button"
+            className="buscador-btn-limpiar"
+            onClick={handleLimpiar}
+            aria-label="Limpiar búsqueda"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      {onBuscar && (
+        <button type="submit" className="buscador-btn-submit">
+          Buscar
+        </button>
+      )}
+    </form>
   );
 };
 

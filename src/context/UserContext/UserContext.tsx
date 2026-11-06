@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { obtenerUsuario, iniciarSesion, registrarUsuario, cerrarSesion } from '../services/authService';
+import { obtenerUsuario, iniciarSesion, registrarUsuario, cerrarSesion } from '../../services/authService';
 
 
 export interface Usuario {

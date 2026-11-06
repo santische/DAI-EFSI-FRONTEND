@@ -1,28 +1,74 @@
-.buscador-container {
+.buscador-form {
   display: flex;
   align-items: center;
-  background-color: var(--fondo-input);
-  border: 1px solid var(--borde);
-  border-radius: 12px;
-  padding: 10px 14px;
-  gap: 10px;
-}
-
-.buscador-icono {
-  width: 18px;
-  height: 18px;
-  color: var(--gris);
-}
-
-.buscador-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--blanco);
-  font-size: 14px;
+  gap: 12px;
   width: 100%;
 }
 
-.buscador-input::placeholder {
-  color: var(--gris);
+.buscador-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.buscador-icono {
+  position: absolute;
+  left: 16px;
+  font-size: 16px;
+  color: var(--texto-secundario, #9ca3af);
+  pointer-events: none;
+}
+
+.buscador-input {
+  width: 100%;
+  padding: 14px 42px 14px 46px;
+  background-color: var(--fondo-input, #18181c);
+  border: 1px solid var(--borde, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radio-medio, 12px);
+  color: var(--texto-principal, #ffffff);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transicion, all 0.2s ease);
+}
+
+.buscador-input:focus {
+  border-color: var(--lila, #b497ff);
+  background-color: var(--fondo-input-hover, #202026);
+}
+
+.buscador-btn-limpiar {
+  position: absolute;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--texto-secundario, #9ca3af);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.2s ease;
+}
+
+.buscador-btn-limpiar:hover {
+  color: var(--texto-principal, #ffffff);
+}
+
+.buscador-btn-submit {
+  padding: 14px 24px;
+  background-color: var(--lila, #b497ff);
+  color: #121214;
+  border: none;
+  border-radius: var(--radio-medio, 12px);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transicion, all 0.2s ease);
+}
+
+.buscador-btn-submit:hover {
+  background-color: var(--lila-hover, #9c7ae6);
 }
