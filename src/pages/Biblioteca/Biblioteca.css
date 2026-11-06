@@ -1,0 +1,88 @@
+.biblioteca-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: var(--blanco);
+}
+
+.biblioteca-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.biblioteca-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+.biblioteca-header p {
+  color: var(--gris);
+  font-size: 14px;
+  margin: 0;
+}
+
+.btn-agregar-contenido {
+  background-color: var(--lila);
+  color: #111014;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn-agregar-contenido:hover {
+  opacity: 0.9;
+}
+
+.biblioteca-buscador-wrapper {
+  max-width: 500px;
+}
+
+.biblioteca-filtros-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filtros-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gris);
+  letter-spacing: 0.8px;
+}
+
+/* Tabla */
+.biblioteca-tabla-container {
+  background-color: var(--fondo-tarjeta);
+  border-radius: 16px;
+  padding: 16px 24px;
+  border: 1px solid var(--borde);
+  overflow-x: auto;
+}
+
+.biblioteca-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.biblioteca-tabla th {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gris);
+  letter-spacing: 1px;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.modal-opciones-body h4 {
+  margin: 0 0 10px 0;
+  color: var(--gris);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
