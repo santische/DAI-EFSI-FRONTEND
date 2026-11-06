@@ -1,0 +1,28 @@
+.buscador-container {
+  display: flex;
+  align-items: center;
+  background-color: var(--fondo-input);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
+.buscador-icono {
+  width: 18px;
+  height: 18px;
+  color: var(--gris);
+}
+
+.buscador-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--blanco);
+  font-size: 14px;
+  width: 100%;
+}
+
+.buscador-input::placeholder {
+  color: var(--gris);
+}
