@@ -1,20 +1,40 @@
-import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 import './Login.css';
 
 function Login() {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
+  const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
+  const [enviando, setEnviando] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const { loginUser } = useUser();
+  const navigate = useNavigate();
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    console.log('Correo:', correo);
-    console.log('Contraseña ingresada');
+    setErrorMsgs([]);
+    setEnviando(true);
+
+    try {
+      await loginUser({ email: correo, password: contrasena });
+      navigate('/');
+    } catch (err: any) {
+      if (err.response?.data?.errores) {
+        setErrorMsgs(err.response.data.errores);
+      } else if (err.response?.data?.mensaje) {
+        setErrorMsgs([err.response.data.mensaje]);
+      } else {
+        setErrorMsgs(['Ocurrió un error al iniciar sesión. Intentá nuevamente.']);
+      }
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
     <main className="login-container">
-
       <section className="login-panel">
         <div className="login-decoracion">
           <div className="audio-barra"></div>
@@ -27,29 +47,30 @@ function Login() {
             <br />
             Tu historia.
           </h1>
-
           <p>
-            Guardá canciones, organizá colecciones
-            y descubrí cómo escuchás música.
+            Guardá canciones, organizá colecciones y descubrí cómo escuchás música.
           </p>
         </div>
       </section>
 
       <section className="login-formulario">
         <div className="login-contenido">
-
           <div className="login-encabezado">
             <h2>Qué bueno verte.</h2>
             <p>Iniciá sesión para entrar a tu colección.</p>
           </div>
 
+          {errorMsgs.length > 0 && (
+            <div className="error-box" style={{ color: '#ff4d4d', marginBottom: '1rem' }}>
+              {errorMsgs.map((msg, idx) => (
+                <p key={idx}>{msg}</p>
+              ))}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
-
             <div className="campo-login">
-              <label htmlFor="correo">
-                CORREO ELECTRÓNICO
-              </label>
-
+              <label htmlFor="correo">CORREO ELECTRÓNICO</label>
               <input
                 id="correo"
                 type="email"
@@ -61,10 +82,7 @@ function Login() {
             </div>
 
             <div className="campo-login">
-              <label htmlFor="contrasena">
-                CONTRASEÑA
-              </label>
-
+              <label htmlFor="contrasena">CONTRASEÑA</label>
               <input
                 id="contrasena"
                 type="password"
@@ -75,10 +93,9 @@ function Login() {
               />
             </div>
 
-            <button type="submit" className="login-boton">
-              Iniciar sesión
+            <button type="submit" className="login-boton" disabled={enviando}>
+              {enviando ? 'Cargando...' : 'Iniciar sesión'}
             </button>
-
           </form>
 
           <p className="crear-cuenta-wrapper">
@@ -88,10 +105,8 @@ function Login() {
           <p className="login-privacidad">
             Los datos personales son privados por usuario.
           </p>
-
         </div>
       </section>
-
     </main>
   );
 }
