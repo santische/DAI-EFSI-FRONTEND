@@ -1,0 +1,28 @@
+.filtros-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filtro-pill {
+  background-color: var(--fondo-input);
+  border: 1px solid var(--borde);
+  color: var(--gris);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filtro-pill:hover {
+  background-color: var(--fondo-tarjeta);
+  color: var(--blanco);
+}
+
+.filtro-pill.activo {
+  background-color: var(--amarillo);
+  color: #111014;
+  border-color: var(--amarillo);
+}

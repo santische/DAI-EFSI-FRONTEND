@@ -3,9 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { UserProvider, useUser } from './context/UserContext/UserContext';
 import { PlayerProvider } from './context/PlayerContext/PlayerContext';
 
+
 import MainLayout from './componentes/layout/MainLayout/MainLayout';
 
-// Páginas
+
+// Páginas, esto es el router, que hace que puedas pasar de una pestaña a otra
 import Home from './pages/Home/Home';
 import Explorar from './pages/Explorar/Explorar';
 import DetalleCancion from './pages/DetalleCancion/DetalleCancion';
@@ -17,23 +19,29 @@ import Estadisticas from './pages/Estadisticas/Estadisticas';
 import Login from './pages/Login/Login';
 import Registro from './pages/Registro/Registro';
 
+
 import './styles/global.css';
 import './styles/variables.css';
+
 
 // Guardián para proteger rutas privadas
 const ProtectedRoute = (): JSX.Element => {
   const { user, loading } = useUser();
 
+
   if (loading) {
     return <div className="loading-screen">Cargando sesión...</div>;
   }
+
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+
   return <Outlet />;
 };
+
 
 const App: React.FC = () => {
   return (
@@ -44,6 +52,7 @@ const App: React.FC = () => {
             {/* Rutas Públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+
 
             {/* Rutas Protegidas dentro del MainLayout */}
             <Route element={<ProtectedRoute />}>
@@ -65,4 +74,6 @@ const App: React.FC = () => {
   );
 };
 
+
 export default App;
+

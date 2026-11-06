@@ -1,0 +1,65 @@
+.fila-biblioteca {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background-color 0.15s ease;
+}
+
+.fila-biblioteca:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.fila-biblioteca td {
+  padding: 14px 12px;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.col-cancion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar-cancion {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #111014;
+  font-size: 16px;
+}
+
+.titulo-cancion {
+  font-weight: 600;
+  color: var(--blanco);
+}
+
+.col-artista {
+  color: var(--gris);
+}
+
+.estrellas {
+  color: var(--amarillo);
+  letter-spacing: 2px;
+}
+
+.sin-puntuacion {
+  color: var(--gris);
+}
+
+.btn-opciones {
+  background: none;
+  border: none;
+  color: var(--gris);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.btn-opciones:hover {
+  color: var(--blanco);
+  background-color: var(--fondo-input);
+}

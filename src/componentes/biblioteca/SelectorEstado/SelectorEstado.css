@@ -1,0 +1,36 @@
+.selector-estado {
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+.selector-estado:hover {
+  opacity: 0.9;
+}
+
+.estado-escuchado {
+  background-color: rgba(155, 240, 190, 0.15);
+  color: var(--verde);
+}
+
+.estado-escuchando {
+  background-color: rgba(185, 154, 255, 0.15);
+  color: var(--lila);
+}
+
+.estado-quiero {
+  background-color: rgba(42, 37, 51, 0.8);
+  color: var(--gris);
+}
+
+.estado-favorito {
+  background-color: rgba(244, 232, 91, 0.15);
+  color: var(--amarillo);
+}
