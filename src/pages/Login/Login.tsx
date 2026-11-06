@@ -1,6 +1,11 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../../context/UserContext';
+import { useUser } from '../../context/UserContext/UserContext';
+
+// Importación de tus componentes comunes
+import MensajeError from '../../componentes/comunes/MensajeError/MensajeError';
+import Loading from '../../componentes/comunes/Loading/Loading';
+
 import './Login.css';
 
 function Login() {
@@ -60,12 +65,9 @@ function Login() {
             <p>Iniciá sesión para entrar a tu colección.</p>
           </div>
 
+          {/* Componente MensajeError*/}
           {errorMsgs.length > 0 && (
-            <div className="error-box" style={{ color: '#ff4d4d', marginBottom: '1rem' }}>
-              {errorMsgs.map((msg, idx) => (
-                <p key={idx}>{msg}</p>
-              ))}
-            </div>
+            <MensajeError mensaje={errorMsgs.join('. ')} />
           )}
 
           <form onSubmit={handleSubmit}>
@@ -77,6 +79,7 @@ function Login() {
                 placeholder="martina@mail.com"
                 value={correo}
                 onChange={(event) => setCorreo(event.target.value)}
+                disabled={enviando}
                 required
               />
             </div>
@@ -89,12 +92,14 @@ function Login() {
                 placeholder="Ingresá tu contraseña"
                 value={contrasena}
                 onChange={(event) => setContrasena(event.target.value)}
+                disabled={enviando}
                 required
               />
             </div>
 
+            {/* Componente Loading*/}
             <button type="submit" className="login-boton" disabled={enviando}>
-              {enviando ? 'Cargando...' : 'Iniciar sesión'}
+              {enviando ? <Loading /> : 'Iniciar sesión'}
             </button>
           </form>
 

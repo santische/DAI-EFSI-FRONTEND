@@ -1,6 +1,11 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../../context/UserContext';
+import { useUser } from '../../context/UserContext/UserContext';
+
+// Importación de componentes comunes
+import MensajeError from '../../componentes/comunes/MensajeError/MensajeError';
+import Loading from '../../componentes/comunes/Loading/Loading';
+
 import './Registro.css';
 
 function Registro() {
@@ -37,14 +42,14 @@ function Registro() {
   }
 
   return (
-    <main className="login-container">
-      <section className="login-panel">
-        <div className="login-decoracion">
-          <div className="audio-barra"></div>
-          <div className="audio-barra-secundaria"></div>
+    <main className="registro-container">
+      <section className="registro-panel">
+        <div className="registro-decoracion">
+          <div className="registro-barra"></div>
+          <div className="registro-barra-secundaria"></div>
         </div>
 
-        <div className="panel-texto">
+        <div className="registro-panel-texto">
           <h1>
             Tu música.
             <br />
@@ -56,23 +61,20 @@ function Registro() {
         </div>
       </section>
 
-      <section className="login-formulario">
-        <div className="login-contenido">
-          <div className="login-encabezado">
+      <section className="registro-formulario">
+        <div className="registro-contenido">
+          <div className="registro-encabezado">
             <h2>Crear cuenta</h2>
             <p>Completá tus datos para empezar.</p>
           </div>
 
+          {/* 1. Mensaje de error reutilizable */}
           {errorMsgs.length > 0 && (
-            <div className="error-box" style={{ color: '#ff4d4d', marginBottom: '1rem' }}>
-              {errorMsgs.map((msg, idx) => (
-                <p key={idx}>{msg}</p>
-              ))}
-            </div>
+            <MensajeError mensaje={errorMsgs.join('. ')} />
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="campo-login">
+            <div className="campo-registro">
               <label htmlFor="username">NOMBRE DE USUARIO (5 A 10 CARACTERES)</label>
               <input
                 id="username"
@@ -80,11 +82,12 @@ function Registro() {
                 placeholder="usuario123"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                disabled={enviando}
                 required
               />
             </div>
 
-            <div className="campo-login">
+            <div className="campo-registro">
               <label htmlFor="email">CORREO ELECTRÓNICO</label>
               <input
                 id="email"
@@ -92,11 +95,12 @@ function Registro() {
                 placeholder="martina@mail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={enviando}
                 required
               />
             </div>
 
-            <div className="campo-login">
+            <div className="campo-registro">
               <label htmlFor="password">CONTRASEÑA (MÍNIMO 8 CARACTERES)</label>
               <input
                 id="password"
@@ -104,11 +108,12 @@ function Registro() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={enviando}
                 required
               />
             </div>
 
-            <div className="campo-login">
+            <div className="campo-registro">
               <label htmlFor="confirmarPassword">CONFIRMAR CONTRASEÑA</label>
               <input
                 id="confirmarPassword"
@@ -116,20 +121,22 @@ function Registro() {
                 placeholder="••••••••"
                 value={confirmarPassword}
                 onChange={(e) => setConfirmarPassword(e.target.value)}
+                disabled={enviando}
                 required
               />
             </div>
 
-            <button type="submit" className="login-boton" disabled={enviando}>
-              {enviando ? 'Registrando...' : 'Crear cuenta'}
+            {/* 2. Indicador de carga en el botón */}
+            <button type="submit" className="registro-boton" disabled={enviando}>
+              {enviando ? <Loading /> : 'Crear cuenta'}
             </button>
           </form>
 
-          <p className="crear-cuenta-wrapper">
-            ¿Ya tenés cuenta? <Link to="/login" className="crear-cuenta-link">Iniciá sesión</Link>
+          <p className="registro-volver">
+            ¿Ya tenés cuenta? <Link to="/login">Iniciá sesión</Link>
           </p>
 
-          <p className="login-privacidad">
+          <p className="registro-privacidad">
             Los datos personales son privados por usuario.
           </p>
         </div>

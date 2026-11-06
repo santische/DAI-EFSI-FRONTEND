@@ -1,7 +1,7 @@
 import React, { JSX } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { UserProvider, useUser } from './context/UserContext';
-import { PlayerProvider } from './context/PlayerContext';
+import { UserProvider, useUser } from './context/UserContext/UserContext';
+import { PlayerProvider } from './context/PlayerContext/PlayerContext';
 
 import MainLayout from './componentes/layout/MainLayout/MainLayout';
 
