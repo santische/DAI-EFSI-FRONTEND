@@ -10,17 +10,14 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, titulo, children }) => {
   if (!isOpen) return null;
-
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-contenido" onClick={(e) => e.stopPropagation()}>
-        <header className="modal-header">
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
           <h3>{titulo}</h3>
-          <button className="modal-btn-cerrar" onClick={onClose}>✕</button>
-        </header>
-        <div className="modal-body">
-          {children}
+          <button className="btn-close" onClick={onClose}>×</button>
         </div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );

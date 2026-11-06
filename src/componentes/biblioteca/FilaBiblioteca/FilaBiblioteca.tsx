@@ -1,66 +1,70 @@
 import React from 'react';
-import SelectorEstado, { EstadoMusica } from '../SelectorEstado/SelectorEstado';
 import BotonFavorito from '../BotonFavorito/BotonFavorito';
+import SelectorEstado, { EstadoBibliotecaBD } from '../SelectorEstado/SelectorEstado';
 import './FilaBiblioteca.css';
 
-export interface CancionItem {
-  id: string;
+export interface ItemBiblioteca {
+  cancion_id: number;
   titulo: string;
   artista: string;
-  estado: EstadoMusica;
-  puntuacion: number;
-  esFavorito: boolean;
-  inicial: string;
-  colorAvatar: string;
+  estado: EstadoBibliotecaBD;
+  es_favorita: boolean;
+  puntuacion: number | null; // el null es por si capaz no punetan 
+  colorUI?: string; // dato aparte para el Figma (avatar)
 }
 
 interface FilaBibliotecaProps {
-  item: CancionItem;
-  onCambiarEstado: (id: string, estado: EstadoMusica) => void;
-  onToggleFavorito: (id: string) => void;
-  onAbrirOpciones: (item: CancionItem) => void;
+  item: ItemBiblioteca;
+  onCambiarEstado: (id: number, estado: EstadoBibliotecaBD) => void;
+  onToggleFavorito: (id: number) => void;
+  onAbrirOpciones: (item: ItemBiblioteca) => void;
 }
 
-const FilaBiblioteca: React.FC<FilaBibliotecaProps> = ({
-  item,
-  onCambiarEstado,
+const FilaBiblioteca: React.FC<FilaBibliotecaProps> = ({ 
+  item, 
+  onCambiarEstado, 
   onToggleFavorito,
-  onAbrirOpciones,
+  onAbrirOpciones 
 }) => {
+  const inicial = item.titulo ? item.titulo.charAt(0).toUpperCase() : '?';
+  const estrellas = [1, 2, 3, 4, 5];
+
   return (
     <tr className="fila-biblioteca">
-      <td className="col-cancion">
-        <div className="avatar-cancion" style={{ backgroundColor: item.colorAvatar }}>
-          {item.inicial}
+      <td className="celda-cancion">
+        <div className="avatar-cancion" style={{ backgroundColor: item.colorUI || 'var(--gris)' }}>
+          {inicial}
         </div>
         <span className="titulo-cancion">{item.titulo}</span>
       </td>
-      <td className="col-artista">{item.artista}</td>
-      <td className="col-estado">
+      <td className="celda-artista">{item.artista}</td>
+      <td className="celda-estado">
         <SelectorEstado 
-          estadoActual={item.estado} 
-          onChangeEstado={(nuevo) => onCambiarEstado(item.id, nuevo)} 
+          estado={item.estado} 
+          onChange={(nuevo) => onCambiarEstado(item.cancion_id, nuevo)} 
         />
       </td>
-      <td className="col-puntuacion">
-        {item.puntuacion > 0 ? (
-          <span className="estrellas">
-            {'★'.repeat(item.puntuacion)}{'☆'.repeat(5 - item.puntuacion)}
-          </span>
+      <td className="celda-puntuacion">
+        {item.puntuacion ? (
+          <div className="estrellas">
+            {estrellas.map((num) => (
+              <span key={num} className={num <= item.puntuacion! ? 'estrella-llena' : 'estrella-vacia'}>
+                ★
+              </span>
+            ))}
+          </div>
         ) : (
           <span className="sin-puntuacion">—</span>
         )}
       </td>
-      <td className="col-favorito">
+      <td className="celda-favorito">
         <BotonFavorito 
-          esFavorito={item.esFavorito} 
-          onToggle={() => onToggleFavorito(item.id)} 
+          esFavorita={item.es_favorita} 
+          onToggle={() => onToggleFavorito(item.cancion_id)} 
         />
       </td>
-      <td className="col-acciones">
-        <button className="btn-opciones" onClick={() => onAbrirOpciones(item)}>
-          •••
-        </button>
+      <td className="celda-opciones">
+        <button className="btn-opciones" onClick={() => onAbrirOpciones(item)}>•••</button>
       </td>
     </tr>
   );

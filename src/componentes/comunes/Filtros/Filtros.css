@@ -1,28 +1,17 @@
-.filtros-container {
+.contenedor-filtros {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 }
-
-.filtro-pill {
-  background-color: var(--fondo-input);
+.btn-filtro {
+  background-color: var(--fondo-tarjeta);
   border: 1px solid var(--borde);
   color: var(--gris);
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
-
-.filtro-pill:hover {
-  background-color: var(--fondo-tarjeta);
-  color: var(--blanco);
-}
-
-.filtro-pill.activo {
-  background-color: var(--amarillo);
-  color: #111014;
-  border-color: var(--amarillo);
-}
+.btn-filtro:hover { border-color: var(--lila); color: var(--blanco); }
+.btn-filtro.activo { background-color: var(--lila); color: #000; font-weight: 600; border-color: var(--lila); }

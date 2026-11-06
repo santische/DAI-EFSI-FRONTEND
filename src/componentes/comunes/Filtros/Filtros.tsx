@@ -7,21 +7,17 @@ interface FiltrosProps {
   onSelect: (opcion: string) => void;
 }
 
-const Filtros: React.FC<FiltrosProps> = ({ opciones, activo, onSelect }) => {
-  return (
-    <div className="filtros-container">
-      {opciones.map((opcion) => (
-        <button
-          key={opcion}
-          type="button"
-          className={`filtro-pill ${activo === opcion ? 'activo' : ''}`}
-          onClick={() => onSelect(opcion)}
-        >
-          {opcion}
-        </button>
-      ))}
-    </div>
-  );
-};
-
+const Filtros: React.FC<FiltrosProps> = ({ opciones, activo, onSelect }) => (
+  <div className="contenedor-filtros">
+    {opciones.map(op => (
+      <button 
+        key={op} 
+        className={`btn-filtro ${activo === op ? 'activo' : ''}`}
+        onClick={() => onSelect(op)}
+      >
+        {op}
+      </button>
+    ))}
+  </div>
+);
 export default Filtros;

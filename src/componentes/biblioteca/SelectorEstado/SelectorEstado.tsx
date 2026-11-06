@@ -1,34 +1,32 @@
 import React from 'react';
 import './SelectorEstado.css';
 
-export type EstadoMusica = 'Quiero escuchar' | 'Escuchando' | 'Escuchado' | 'Favorito';
+export type EstadoBibliotecaBD = 'quiero_escuchar' | 'escuchando' | 'escuchado';
 
 interface SelectorEstadoProps {
-  estadoActual: EstadoMusica;
-  onChangeEstado?: (nuevoEstado: EstadoMusica) => void;
+  estado: EstadoBibliotecaBD;
+  onChange: (nuevoEstado: EstadoBibliotecaBD) => void;
 }
 
-const SelectorEstado: React.FC<SelectorEstadoProps> = ({ estadoActual, onChangeEstado }) => {
-  const getClaseEstado = (estado: EstadoMusica) => {
-    switch (estado) {
-      case 'Escuchado': return 'estado-escuchado';
-      case 'Escuchando': return 'estado-escuchando';
-      case 'Quiero escuchar': return 'estado-quiero';
-      case 'Favorito': return 'estado-favorito';
-      default: return '';
+const SelectorEstado: React.FC<SelectorEstadoProps> = ({ estado, onChange }) => {
+  const formatearEstado = (est: EstadoBibliotecaBD) => {
+    switch (est) {
+      case 'quiero_escuchar': return 'Quiero escuchar';
+      case 'escuchando': return 'Escuchando';
+      case 'escuchado': return 'Escuchado';
+      default: return est;
     }
   };
 
   return (
     <select 
-      className={`selector-estado ${getClaseEstado(estadoActual)}`}
-      value={estadoActual}
-      onChange={(e) => onChangeEstado && onChangeEstado(e.target.value as EstadoMusica)}
+      className={`selector-estado estado-${estado}`}
+      value={estado}
+      onChange={(e) => onChange(e.target.value as EstadoBibliotecaBD)}
     >
-      <option value="Quiero escuchar">Quiero escuchar</option>
-      <option value="Escuchando">Escuchando</option>
-      <option value="Escuchado">Escuchado</option>
-      <option value="Favorito">Favorito</option>
+      <option value="quiero_escuchar">Quiero escuchar</option>
+      <option value="escuchando">Escuchando</option>
+      <option value="escuchado">Escuchado</option>
     </select>
   );
 };
