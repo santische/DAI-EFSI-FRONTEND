@@ -15,7 +15,7 @@ import Playlists from './pages/Playlist/Playlists';
 import Perfil from './pages/Perfil/Perfil';
 import Estadisticas from './pages/Estadisticas/Estadisticas';
 import Login from './pages/Login/Login';
-import Registro from './pages/Registro/Registro'
+import Registro from './pages/Registro/Registro';
 
 import './styles/global.css';
 import './styles/variables.css';
@@ -41,7 +41,7 @@ const App: React.FC = () => {
       <PlayerProvider>
         <BrowserRouter>
           <Routes>
-            {/* Ruta Pública */}
+            {/* Rutas Públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
 

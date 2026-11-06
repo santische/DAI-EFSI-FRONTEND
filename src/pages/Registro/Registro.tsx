@@ -1,149 +1,139 @@
-
-import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 import './Registro.css';
 
 function Registro() {
-  const [nombre, setNombre] = useState('');
-  const [usuario, setUsuario] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [contrasena, setContrasena] = useState('');
-  const [confirmarContrasena, setConfirmarContrasena] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmarPassword, setConfirmarPassword] = useState('');
+  const [errorMsgs, setErrorMsgs] = useState<string[]>([]);
+  const [enviando, setEnviando] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const { registrarUser, loginUser } = useUser();
+  const navigate = useNavigate();
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setErrorMsgs([]);
+    setEnviando(true);
 
-    if (contrasena !== confirmarContrasena) {
-      setError('Las contraseñas no coinciden.');
-      return;
+    try {
+      await registrarUser({ username, email, password, confirmarPassword });
+      await loginUser({ email, password });
+      navigate('/');
+    } catch (err: any) {
+      if (err.response?.data?.errores) {
+        setErrorMsgs(err.response.data.errores);
+      } else if (err.response?.data?.mensaje) {
+        setErrorMsgs([err.response.data.mensaje]);
+      } else {
+        setErrorMsgs(['Ocurrió un error al registrar la cuenta.']);
+      }
+    } finally {
+      setEnviando(false);
     }
-
-    setError('');
-
-    console.log('Nombre:', nombre);
-    console.log('Usuario:', usuario);
-    console.log('Correo:', correo);
-
-    // Más adelante conectaremos este formulario con el backend.
   }
 
   return (
-    <main className="registro-container">
-
-      <section className="registro-panel">
-        <div className="registro-decoracion">
-          <div className="registro-barra"></div>
-          <div className="registro-barra-secundaria"></div>
+    <main className="login-container">
+      <section className="login-panel">
+        <div className="login-decoracion">
+          <div className="audio-barra"></div>
+          <div className="audio-barra-secundaria"></div>
         </div>
 
-        <div className="registro-panel-texto">
+        <div className="panel-texto">
           <h1>
             Tu música.
             <br />
             Tu historia.
           </h1>
-
           <p>
-            Creá tu cuenta y empezá a organizar
-            tu propia colección musical.
+            Guardá canciones, organizá colecciones y descubrí cómo escuchás música.
           </p>
         </div>
       </section>
 
-      <section className="registro-formulario">
-        <div className="registro-contenido">
-
-          <div className="registro-encabezado">
-            <h2>Creá tu cuenta.</h2>
+      <section className="login-formulario">
+        <div className="login-contenido">
+          <div className="login-encabezado">
+            <h2>Crear cuenta</h2>
             <p>Completá tus datos para empezar.</p>
           </div>
 
+          {errorMsgs.length > 0 && (
+            <div className="error-box" style={{ color: '#ff4d4d', marginBottom: '1rem' }}>
+              {errorMsgs.map((msg, idx) => (
+                <p key={idx}>{msg}</p>
+              ))}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
-
-            <div className="campo-registro">
-              <label htmlFor="nombre">NOMBRE Y APELLIDO</label>
+            <div className="campo-login">
+              <label htmlFor="username">NOMBRE DE USUARIO (5 A 10 CARACTERES)</label>
               <input
-                id="nombre"
+                id="username"
                 type="text"
-                placeholder="Tu nombre completo"
-                value={nombre}
-                onChange={(event) => setNombre(event.target.value)}
+                placeholder="usuario123"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
 
-            <div className="campo-registro">
-              <label htmlFor="usuario">NOMBRE DE USUARIO</label>
+            <div className="campo-login">
+              <label htmlFor="email">CORREO ELECTRÓNICO</label>
               <input
-                id="usuario"
-                type="text"
-                placeholder="Elegí un nombre de usuario"
-                value={usuario}
-                onChange={(event) => setUsuario(event.target.value)}
-                required
-              />
-            </div>
-
-            <div className="campo-registro">
-              <label htmlFor="correo">CORREO ELECTRÓNICO</label>
-              <input
-                id="correo"
+                id="email"
                 type="email"
-                placeholder="usuario@mail.com"
-                value={correo}
-                onChange={(event) => setCorreo(event.target.value)}
+                placeholder="martina@mail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
 
-            <div className="campo-registro">
-              <label htmlFor="contrasena">CONTRASEÑA</label>
+            <div className="campo-login">
+              <label htmlFor="password">CONTRASEÑA (MÍNIMO 8 CARACTERES)</label>
               <input
-                id="contrasena"
+                id="password"
                 type="password"
-                placeholder="Creá una contraseña"
-                value={contrasena}
-                onChange={(event) => setContrasena(event.target.value)}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
 
-            <div className="campo-registro">
-              <label htmlFor="confirmarContrasena">
-                CONFIRMAR CONTRASEÑA
-              </label>
+            <div className="campo-login">
+              <label htmlFor="confirmarPassword">CONFIRMAR CONTRASEÑA</label>
               <input
-                id="confirmarContrasena"
+                id="confirmarPassword"
                 type="password"
-                placeholder="Repetí tu contraseña"
-                value={confirmarContrasena}
-                onChange={(event) => setConfirmarContrasena(event.target.value)}
+                placeholder="••••••••"
+                value={confirmarPassword}
+                onChange={(e) => setConfirmarPassword(e.target.value)}
                 required
               />
             </div>
 
-            {error && (
-              <p className="registro-error">{error}</p>
-            )}
-
-            <button type="submit" className="registro-boton">
-              Crear cuenta
+            <button type="submit" className="login-boton" disabled={enviando}>
+              {enviando ? 'Registrando...' : 'Crear cuenta'}
             </button>
-
           </form>
 
-          <p className="registro-volver">
-            ¿Ya tenés una cuenta? <Link to="/login">Iniciar sesión</Link>
+          <p className="crear-cuenta-wrapper">
+            ¿Ya tenés cuenta? <Link to="/login" className="crear-cuenta-link">Iniciá sesión</Link>
           </p>
 
-          <p className="registro-privacidad">
-            Tus datos personales son privados.
+          <p className="login-privacidad">
+            Los datos personales son privados por usuario.
           </p>
-
         </div>
       </section>
-
     </main>
   );
 }
