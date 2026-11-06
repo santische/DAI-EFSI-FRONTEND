@@ -1,0 +1,13 @@
+.input-buscador {
+  width: 100%;
+  background-color: var(--fondo-tarjeta);
+  border: 1px solid var(--borde);
+  color: var(--blanco);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.input-buscador:focus {
+  outline: none;
+  border-color: var(--lila);
+}

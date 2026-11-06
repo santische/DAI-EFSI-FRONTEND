@@ -1,0 +1,34 @@
+.formulario-puntuacion {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.selector-estrellas {
+  display: flex;
+  gap: 8px;
+}
+.selector-estrellas button {
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.selector-estrellas button:hover {
+  transform: scale(1.2);
+}
+.estrella-activa { color: var(--amarillo); }
+.estrella-inactiva { color: var(--gris); opacity: 0.3; }
+.btn-guardar-puntuacion {
+  background-color: var(--lila);
+  color: #000;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-guardar-puntuacion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,33 @@
+.selector-estado {
+  background-color: transparent;
+  color: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  text-align: center;
+  width: 130px;
+}
+.selector-estado option {
+  background-color: var(--fondo-app);
+  color: var(--blanco);
+}
+.estado-escuchado {
+  background-color: rgba(62, 114, 75, 0.2);
+  border-color: rgba(62, 114, 75, 0.5);
+  color: #8be0a4;
+}
+.estado-escuchando {
+  background-color: rgba(103, 78, 167, 0.2);
+  border-color: rgba(103, 78, 167, 0.5);
+  color: #c9a4ff;
+}
+.estado-quiero_escuchar {
+  background-color: rgba(100, 100, 100, 0.2);
+  border-color: rgba(100, 100, 100, 0.5);
+  color: var(--gris);
+}

@@ -1,0 +1,33 @@
+.formulario-reseña {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.formulario-reseña textarea {
+  width: 100%;
+  background-color: var(--fondo-app);
+  border: 1px solid var(--borde);
+  color: var(--blanco);
+  border-radius: 8px;
+  padding: 12px;
+  resize: vertical;
+  font-family: inherit;
+}
+.formulario-reseña textarea:focus {
+  outline: none;
+  border-color: var(--lila);
+}
+.btn-guardar-reseña {
+  background-color: var(--lila);
+  color: #000;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-end;
+}
+.btn-guardar-reseña:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

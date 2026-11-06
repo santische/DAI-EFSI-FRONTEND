@@ -1,0 +1,67 @@
+.biblioteca-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  color: var(--blanco);
+  padding: 0 16px;
+}
+.biblioteca-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.biblioteca-header h1 {
+  font-size: 28px;
+  margin: 0 0 8px 0;
+}
+.biblioteca-header p {
+  margin: 0;
+  color: var(--gris);
+  font-size: 14px;
+}
+.btn-agregar-contenido {
+  background-color: var(--lila);
+  color: #111014;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.biblioteca-controles {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+}
+.label-filtros {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gris);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  display: block;
+}
+.tabla-contenedor {
+  background-color: var(--fondo-tarjeta);
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+  overflow-x: auto;
+}
+.tabla-biblioteca {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.tabla-biblioteca th {
+  padding: 16px 12px;
+  color: var(--gris);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--borde);
+}
+.modal-secciones h4 {
+  margin: 0 0 12px 0;
+  color: var(--blanco);
+}
