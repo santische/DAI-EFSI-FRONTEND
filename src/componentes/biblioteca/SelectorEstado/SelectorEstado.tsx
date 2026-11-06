@@ -1,7 +1,6 @@
 import React from 'react';
 import './SelectorEstado.css';
 
-// Mapeado directo del CHECK de la BD: estado IN ('quiero_escuchar', 'escuchando', 'escuchado')
 export type EstadoBibliotecaBD = 'quiero_escuchar' | 'escuchando' | 'escuchado';
 
 interface SelectorEstadoProps {

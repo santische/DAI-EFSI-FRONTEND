@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './FormularioPuntuacion.css';
 
 interface Props {
-  puntuacionActual: number | null; // constraint BD: 1 al 5
+  puntuacionActual: number | null;
   onSubmit: (puntuacion: number) => void;
 }
 

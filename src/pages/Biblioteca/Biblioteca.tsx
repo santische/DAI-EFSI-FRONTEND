@@ -7,53 +7,80 @@ import { EstadoBibliotecaBD } from '../../componentes/biblioteca/SelectorEstado/
 import FormularioPuntuacion from '../../componentes/biblioteca/FormularioPuntuacion/FormularioPuntuacion';
 import FormularioReseña from '../../componentes/biblioteca/FormularioReseña/FormularioReseña';
 import { Loading } from '../../componentes/comunes/Loading/Loading';
+import { MensajeError } from '../../componentes/comunes/MensajeError/MensajeError';
 import './Biblioteca.css';
 
 const Biblioteca: React.FC = () => {
+  // estado dinámico (vacio para back completar)
   const [canciones, setCanciones] = useState<ItemBiblioteca[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
-  const [busqueda, setBusqueda] = useState('');
-  const [filtroActivo, setFiltroActivo] = useState('Todos');
-  const [itemSeleccionado, setItemSeleccionado] = useState<ItemBiblioteca | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // TODO: Reemplazar por fetch/axios real al backend
-  useEffect(() => {
-    // Simulación de respuesta de BD para estructurar la UI
-    const fetchDatos = async () => {
-      setTimeout(() => {
-        setCanciones([
-          { cancion_id: 1, titulo: 'Luz de Ciudad', artista: 'Alma Sol', estado: 'escuchado', es_favorita: true, puntuacion: 5, colorUI: '#b99aff' },
-          { cancion_id: 2, titulo: 'Bajo la Lluvia', artista: 'Los Satélites', estado: 'quiero_escuchar', es_favorita: false, puntuacion: null, colorUI: '#95bdff' },
-        ]);
-        setCargando(false);
-      }, 500);
-    };
-    fetchDatos();
-  }, []);
+  // estados de control de la UI
+  const [busqueda, setBusqueda] = useState<string>('');
+  const [filtroActivo, setFiltroActivo] = useState<string>('Todos');
+  const [itemSeleccionado, setItemSeleccionado] = useState<ItemBiblioteca | null>(null);
 
   const opcionesFiltro = ['Todos', 'Quiero escuchar', 'Escuchando', 'Escuchado', 'Favoritos'];
 
-  // Manejadores (Aquí irían los PUT/POST al backend)
-  const handleCambiarEstado = (id: number, nuevoEstado: EstadoBibliotecaBD) => {
+  // carga datos real desde API back
+  useEffect(() => {
+    const obtenerBiblioteca = async () => {
+      try {
+        setCargando(true);
+        setError(null);
+
+        // reemplazar '/api/biblioteca' por el endpoint real del back
+        const respuesta = await fetch('/api/biblioteca');
+        
+        if (!respuesta.ok) {
+          throw new Error('Error al obtener los datos de la biblioteca');
+        }
+
+        const datos: ItemBiblioteca[] = await respuesta.json();
+        setCanciones(datos);
+      } catch (err: any) {
+        setError(err.message || 'Ocurrió un error inesperado');
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    obtenerBiblioteca();
+  }, []);
+
+  // actualizar los estados a través de la API
+  const handleCambiarEstado = async (id: number, nuevoEstado: EstadoBibliotecaBD) => {
+    
     setCanciones(prev => prev.map(c => c.cancion_id === id ? { ...c, estado: nuevoEstado } : c));
+    
   };
 
-  const handleToggleFavorito = (id: number) => {
+  const handleToggleFavorito = async (id: number) => {
     setCanciones(prev => prev.map(c => c.cancion_id === id ? { ...c, es_favorita: !c.es_favorita } : c));
+
+    // TODO BACKEND: Petición PUT/PATCH al backend
+    // await fetch(`/api/biblioteca/${id}/favorito`, { method: 'PATCH' });
   };
 
-  const guardarPuntuacion = (valor: number) => {
+  const guardarPuntuacion = async (valor: number) => {
     if (itemSeleccionado) {
       setCanciones(prev => prev.map(c => c.cancion_id === itemSeleccionado.cancion_id ? { ...c, puntuacion: valor } : c));
       setItemSeleccionado(null);
+
+      // TODO BACKEND: Petición POST/PUT de puntuación
     }
   };
 
-  const guardarReseña = (texto: string) => {
-    // Lógica para guardar reseña
-    setItemSeleccionado(null);
+  const guardarReseña = async (texto: string) => {
+    if (itemSeleccionado) {
+      setItemSeleccionado(null);
+
+      // TODO BACKEND: Petición POST/PUT de reseña
+    }
   };
 
+  // Filtrado de canciones
   const cancionesFiltradas = canciones.filter(item => {
     const coincideBusqueda = item.titulo.toLowerCase().includes(busqueda.toLowerCase()) || 
                              item.artista.toLowerCase().includes(busqueda.toLowerCase());
@@ -89,6 +116,8 @@ const Biblioteca: React.FC = () => {
       <div className="tabla-contenedor">
         {cargando ? (
           <Loading />
+        ) : error ? (
+          <MensajeError mensaje={error} />
         ) : (
           <table className="tabla-biblioteca">
             <thead>
@@ -102,15 +131,23 @@ const Biblioteca: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {cancionesFiltradas.map(item => (
-                <FilaBiblioteca
-                  key={item.cancion_id}
-                  item={item}
-                  onCambiarEstado={handleCambiarEstado}
-                  onToggleFavorito={handleToggleFavorito}
-                  onAbrirOpciones={setItemSeleccionado}
-                />
-              ))}
+              {cancionesFiltradas.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--gris)', padding: '24px' }}>
+                    No se encontraron canciones en tu biblioteca.
+                  </td>
+                </tr>
+              ) : (
+                cancionesFiltradas.map(item => (
+                  <FilaBiblioteca
+                    key={item.cancion_id}
+                    item={item}
+                    onCambiarEstado={handleCambiarEstado}
+                    onToggleFavorito={handleToggleFavorito}
+                    onAbrirOpciones={setItemSeleccionado}
+                  />
+                ))
+              )}
             </tbody>
           </table>
         )}
@@ -119,7 +156,7 @@ const Biblioteca: React.FC = () => {
       <Modal 
         isOpen={!!itemSeleccionado} 
         onClose={() => setItemSeleccionado(null)} 
-        titulo={`Opciones para ${itemSeleccionado?.titulo}`}
+        titulo={`Opciones para ${itemSeleccionado?.titulo || ''}`}
       >
         <div className="modal-secciones">
           <h4>Puntuación</h4>

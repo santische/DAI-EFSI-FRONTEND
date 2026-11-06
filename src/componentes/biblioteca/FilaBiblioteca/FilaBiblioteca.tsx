@@ -3,15 +3,14 @@ import BotonFavorito from '../BotonFavorito/BotonFavorito';
 import SelectorEstado, { EstadoBibliotecaBD } from '../SelectorEstado/SelectorEstado';
 import './FilaBiblioteca.css';
 
-// DTO Combinado para la UI basado en las tablas: biblioteca, canciones, artistas, puntuaciones
 export interface ItemBiblioteca {
   cancion_id: number;
   titulo: string;
   artista: string;
   estado: EstadoBibliotecaBD;
   es_favorita: boolean;
-  puntuacion: number | null; // NULL si no hay registro en tabla puntuaciones
-  colorUI?: string; // Dato auxiliar para el Figma (avatar)
+  puntuacion: number | null; // el null es por si capaz no punetan 
+  colorUI?: string; // dato aparte para el Figma (avatar)
 }
 
 interface FilaBibliotecaProps {

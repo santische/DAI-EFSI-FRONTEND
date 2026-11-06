@@ -2,7 +2,7 @@ import React from 'react';
 import './BotonFavorito.css';
 
 interface BotonFavoritoProps {
-  esFavorita: boolean; // Mapeado de biblioteca.es_favorita
+  esFavorita: boolean;
   onToggle: () => void;
 }
 
