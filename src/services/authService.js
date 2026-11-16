@@ -18,4 +18,4 @@ export const cerrarSesion = async () => {
 export const obtenerUsuario = async () => {
   const respuesta = await api.get('/api/auth/me');
   return respuesta.data;
-};
+};  
