@@ -2,12 +2,7 @@ import React, { JSX } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { UserProvider, useUser } from './context/UserContext/UserContext';
 import { PlayerProvider } from './context/PlayerContext/PlayerContext';
-
-
 import MainLayout from './componentes/layout/MainLayout/MainLayout';
-
-
-// Páginas, esto es el router, que hace que puedas pasar de una pestaña a otra
 import Home from './pages/Home/Home';
 import Explorar from './pages/Explorar/Explorar';
 import DetalleCancion from './pages/DetalleCancion/DetalleCancion';
@@ -23,21 +18,16 @@ import Registro from './pages/Registro/Registro';
 import './styles/global.css';
 import './styles/variables.css';
 
-
-// Guardián para proteger rutas privadas
 const ProtectedRoute = (): JSX.Element => {
   const { user, loading } = useUser();
-
 
   if (loading) {
     return <div className="loading-screen">Cargando sesión...</div>;
   }
 
-
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-
 
   return <Outlet />;
 };
