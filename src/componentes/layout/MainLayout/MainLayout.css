@@ -1,24 +1,44 @@
+/* Estructura principal en grilla: 2 columnas (Sidebar + Contenido) y 2 filas (Vista + Reproductor) */
 .main-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
   grid-template-rows: 1fr auto;
   height: 100vh;
   width: 100vw;
-  background-color: var(--fondo);
-  color: var(--blanco);
+  background-color: var(--fondo, #121216);
+  color: var(--blanco, #ffffff);
   overflow: hidden;
 }
 
+/* Columna derecha que apila el Navbar arriba y la página activa debajo */
 .layout-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
   overflow: hidden;
-  background-color: var(--fondo-secundario);
+  background-color: var(--fondo, #121216);
 }
 
+/* Área con scroll independiente donde se renderiza el <Outlet /> */
 .page-container {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+}
+
+/* Hace que el 3er elemento (<Reproductor />) ocupe todo el ancho inferior de la grilla */
+.main-layout > :nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+/* En móvil el Sidebar pasa a ser flotante (fixed), por lo que el contenido ocupa el 100% */
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .page-container {
+    padding: 16px;
+  }
 }
