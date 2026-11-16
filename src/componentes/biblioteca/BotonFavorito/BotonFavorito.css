@@ -1,25 +1,26 @@
 .btn-favorito {
-  background: none;
+  background: transparent;
   border: none;
-  color: var(--gris);
-  cursor: pointer;
   padding: 6px;
+  border-radius: 8px;
+  color: var(--texto-secundario, #8e8e98);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s ease, color 0.15s ease;
+  transition: transform 0.15s ease, color 0.2s ease;
 }
 
-.btn-favorito svg {
-  width: 20px;
-  height: 20px;
-}
-
-.btn-favorito:hover {
-  transform: scale(1.15);
-  color: var(--amarillo);
+.btn-favorito:hover:not(:disabled) {
+  transform: scale(1.12);
+  color: var(--amarillo, #facc15);
 }
 
 .btn-favorito.activo {
-  color: var(--amarillo);
+  color: var(--amarillo, #facc15);
+}
+
+.btn-favorito:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

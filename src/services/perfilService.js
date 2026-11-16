@@ -1,1 +1,1 @@
-//gg
+import api from './api.js';
