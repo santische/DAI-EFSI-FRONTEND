@@ -1,273 +1,184 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Library } from 'lucide-react';
-import SelectorEstado, { EstadoBibliotecaBD } from '../../componentes/biblioteca/SelectorEstado/SelectorEstado';
+import { useParams } from 'react-router-dom';
+import api from '../../services/api';
 import BotonFavorito from '../../componentes/biblioteca/BotonFavorito/BotonFavorito';
+import SelectorEstado, { EstadoBibliotecaBD } from '../../componentes/biblioteca/SelectorEstado/SelectorEstado';
+import FormularioPuntuacion from '../../componentes/biblioteca/FormularioPuntuacion/FormularioPuntuacion';
 import FormularioReseña from '../../componentes/biblioteca/FormularioReseña/FormularioReseña';
 import { Loading } from '../../componentes/comunes/Loading/Loading';
 import { MensajeError } from '../../componentes/comunes/MensajeError/MensajeError';
 import './DetalleCancion.css';
 
-// 1. interfaz adaptada a la estructura relacional de la bd
-export interface CancionDetalleData {
-  id: number;
+interface CancionDetalle {
+  cancion_id: number;
   titulo: string;
-  duracion: number; // son integer (segundos) desde la BD
-  foto: string | null; // columna 'foto' en BD
-  fecha_lanzamiento: string; // Corresponde a 'fecha_lanzamiento'
-  // el backend debería cruzar estas tablas y devolverlas como arrays
-  artistas: { id: number; nombre: string }[]; 
-  generos: { id: number; nombre: string }[];
-  // datos del usuario cruzados (biblioteca, puntuaciones, reseñas)
-  estadoBiblioteca: EstadoBibliotecaBD | null;
+  artista: string;
+  genero: string;
+  fecha_lanzamiento: string;
+  imagenUrl?: string;
+  colorUI?: string;
+  en_biblioteca: boolean;
+  estado: EstadoBibliotecaBD;
+  es_favorito: boolean;
   puntuacion: number | null;
-  esFavorita: boolean;
   resena: string | null;
 }
 
 const DetalleCancion: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  
-  const [cancion, setCancion] = useState<CancionDetalleData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [cancion, setCancion] = useState<CancionDetalle | null>(null);
+  const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const API_BASE_URL = 'http://localhost:3000/api'; //capaz da error aca pq alejo esta cambiando algo en su rama del env pero no se
-
-  // esto es la función para convertir los segundos de la BD a formato "MM:SS"
-  const formatearDuracion = (segundosTotales: number) => {
-    const minutos = Math.floor(segundosTotales / 60);
-    const segundos = segundosTotales % 60;
-    return `${minutos}:${segundos.toString().padStart(2, '0')}`;
-  };
+  const [procesando, setProcesando] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchDetalleCancion = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/canciones/${id}`);
-        
-        if (!response.ok) {
-          throw new Error('Error al obtener los datos de la canción');
-        }
-
-        const data: CancionDetalleData = await response.json();
-        setCancion(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido de conexión');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchDetalleCancion();
-    }
+    cargarDetalleCancion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const handleCambiarEstado = async (nuevoEstado: EstadoBibliotecaBD) => {
-    if (!cancion) return;
-    const estadoAnterior = cancion.estadoBiblioteca;
-    setCancion({ ...cancion, estadoBiblioteca: nuevoEstado });
-
+  const cargarDetalleCancion = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/biblioteca/${id}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: nuevoEstado }),
-      });
-      if (!response.ok) throw new Error('Error al actualizar el estado');
-    } catch (err) {
-      setCancion({ ...cancion, estadoBiblioteca: estadoAnterior });
-      console.error(err);
+      setCargando(true);
+      setError(null);
+      // endpoint GET del detalle completo ( info de tabla canciones y biblioteca/reseñas del usuario)
+      const { data } = await api.get<CancionDetalle>(`/api/musica/cancion/${id}`);
+      setCancion(data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al cargar los detalles de la canción.');
+    } finally {
+      setCargando(false);
     }
   };
 
   const handleToggleFavorito = async () => {
     if (!cancion) return;
-    const estadoAnterior = cancion.esFavorita;
-    setCancion({ ...cancion, esFavorita: !estadoAnterior });
-
     try {
-      const method = estadoAnterior ? 'DELETE' : 'POST';
-      const response = await fetch(`${API_BASE_URL}/favoritos/${id}`, { method });
-      if (!response.ok) throw new Error('Error al actualizar favoritos');
+      setProcesando(true);
+      if (cancion.es_favorito) {
+        await api.delete(`/api/biblioteca/${cancion.cancion_id}/favorito`);
+      } else {
+        await api.post(`/api/biblioteca/${cancion.cancion_id}/favorito`);
+      }
+      setCancion({ ...cancion, es_favorito: !cancion.es_favorito });
     } catch (err) {
-      setCancion({ ...cancion, esFavorita: estadoAnterior });
-      console.error(err);
+      console.error('Error al actualizar favorito:', err);
+    } finally {
+      setProcesando(false);
     }
   };
 
-  const handlePuntuar = async (valor: number) => {
+  const handleCambiarEstado = async (nuevoEstado: EstadoBibliotecaBD) => {
     if (!cancion) return;
-    const puntuacionAnterior = cancion.puntuacion;
-    setCancion({ ...cancion, puntuacion: valor });
-
     try {
-      const response = await fetch(`${API_BASE_URL}/biblioteca/${id}/puntuacion`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ valor: valor }), // esta asi pq BD usa la columna valor
-      });
-      if (!response.ok) throw new Error('Error al guardar la puntuación');
+      setProcesando(true);
+      await api.put(`/api/biblioteca/${cancion.cancion_id}/estado`, { estado: nuevoEstado });
+      setCancion({ ...cancion, estado: nuevoEstado, en_biblioteca: true });
     } catch (err) {
-      setCancion({ ...cancion, puntuacion: puntuacionAnterior });
-      console.error(err);
+      console.error('Error al actualizar estado:', err);
+    } finally {
+      setProcesando(false);
+    }
+  };
+
+  const handleGuardarPuntuacion = async (valor: number) => {
+    if (!cancion) return;
+    try {
+      setProcesando(true);
+      await api.put(`/api/puntuaciones/${cancion.cancion_id}`, { puntuacion: valor });
+      setCancion({ ...cancion, puntuacion: valor });
+    } catch (err) {
+      console.error('Error al guardar puntuación:', err);
+    } finally {
+      setProcesando(false);
     }
   };
 
   const handleGuardarResena = async (texto: string) => {
     if (!cancion) return;
-    const resenaAnterior = cancion.resena;
-    setCancion({ ...cancion, resena: texto });
-
     try {
-      const response = await fetch(`${API_BASE_URL}/resenas/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto: texto }), // La BD usa la columna 'texto'
-      });
-      if (!response.ok) throw new Error('Error al guardar la reseña');
+      setProcesando(true);
+      await api.put(`/api/reseñas/${cancion.cancion_id}`, { texto });
+      setCancion({ ...cancion, resena: texto });
     } catch (err) {
-      setCancion({ ...cancion, resena: resenaAnterior });
-      console.error(err);
+      console.error('Error al guardar reseña:', err);
+    } finally {
+      setProcesando(false);
     }
   };
 
-  if (loading) return <Loading mensaje="Cargando detalles de la canción..." />;
-  if (error) return <MensajeError mensaje={error} onReintentar={() => window.location.reload()} />;
-  if (!cancion) return <MensajeError mensaje="Canción no encontrada." />;
+  if (cargando) return <Loading mensaje="Cargando detalles de la canción..." />;
+  if (error) return <MensajeError mensaje={error} onReintentar={cargarDetalleCancion} />;
+  if (!cancion) return <MensajeError mensaje="No se encontró la canción solicitada." />;
 
-  // formatear datos para la UI
-  const nombresArtistas = cancion.artistas?.map(a => a.nombre).join(', ') || 'Artista Desconocido';
-  const nombresGeneros = cancion.generos?.map(g => g.nombre).join(', ') || 'Sin género';
-  const anioLanzamiento = cancion.fecha_lanzamiento ? new Date(cancion.fecha_lanzamiento).getFullYear() : 'Desconocido';
+  const inicialCancion = cancion.titulo ? cancion.titulo.charAt(0).toUpperCase() : '?';
 
   return (
-    <div className="detalle-cancion-page">
-      <header className="header-principal">
-        <div className="header-textos">
-          <h1>Detalle de canción</h1>
-          <p>Consultá metadatos, guardá el tema y registrá tu valoración.</p>
-        </div>
-        <div className="avatar-usuario">M</div>
-      </header>
-
-      <main className="detalle-grid">
-        {/* columna izq */}
-        <aside className="columna-izq">
-          {cancion.foto ? (
-             <img src={cancion.foto} alt="Portada" className="portada-imagen" style={{width: '100%', borderRadius: '12px'}} />
+    <div className="detalle-page">
+      {/* hero section (o sea lo visual mas importante tipo lo primero q ve el user) */}
+      <div className="detalle-hero">
+        <div className="hero-cover">
+          {cancion.imagenUrl ? (
+            <img src={cancion.imagenUrl} alt={cancion.titulo} />
           ) : (
-            <div className="portada-placeholder">
-              <h2>{cancion.titulo}</h2>
-              <div className="portada-bottom">
-                <span>{nombresArtistas.toUpperCase()}</span>
-                <div className="portada-linea"></div>
-              </div>
+            <div 
+              className="hero-cover-placeholder" 
+              style={{ backgroundColor: cancion.colorUI || 'var(--gris)' }}
+            >
+              {inicialCancion}
             </div>
           )}
-
-          <div className="card-oscura">
-            <h3>Información</h3>
-            <div className="info-row">
-              <span className="info-label">Artista</span>
-              <span className="info-value">{nombresArtistas}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Álbum</span>
-              <span className="info-value">Todo empieza</span> {/* O el dato real si lo tenés */}
-            </div>
-            <div className="info-row">
-              <span className="info-label">Género</span>
-              <span className="info-value">{nombresGeneros}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Duración</span>
-              <span className="info-value">{formatearDuracion(cancion.duracion)} min</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Origen</span>
-              <span className="info-value">Catálogo musical</span>
-            </div>
+        </div>
+        <div className="hero-info">
+          <span className="hero-badge">Sencillo</span>
+          <h1 className="hero-titulo">{cancion.titulo}</h1>
+          <div className="hero-metadata">
+            <span className="hero-artista">{cancion.artista}</span>
+            <span className="hero-separador">•</span>
+            <span>{cancion.genero}</span>
+            <span className="hero-separador">•</span>
+            <span>{new Date(cancion.fecha_lanzamiento).getFullYear()}</span>
           </div>
-        </aside>
+        </div>
+      </div>
 
-        {/* columna der */}
-        <section className="columna-der">
-          <div>
-            <h2 className="titulo-cancion">{cancion.titulo}</h2>
-            <p className="subtitulo-cancion">{nombresArtistas} · Álbum: Todo empieza</p>
-            
-            <div className="tags-container">
-              <span className="tag-pill">{nombresGeneros}</span>
-              <span className="tag-pill">{anioLanzamiento}</span>
-              <span className="tag-pill">{formatearDuracion(cancion.duracion)} min</span>
-            </div>
+      {/* controles de interacción */}
+      <div className="detalle-controles">
+        <button className="btn-play-gigante" disabled={procesando}>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+        </button>
+        
+        <div className="controles-biblioteca">
+          <BotonFavorito 
+            esFavorito={cancion.es_favorito} 
+            onToggle={handleToggleFavorito} 
+          />
+          <SelectorEstado 
+            estado={cancion.estado || 'quiero_escuchar'} 
+            onChange={handleCambiarEstado} 
+          />
+        </div>
+      </div>
 
-            <div className="botones-accion">
-              <button className="btn-accion btn-purple">
-                Guardar en biblioteca
-              </button>
-              <button className="btn-accion btn-yellow" onClick={handleToggleFavorito}>
-                ♥ Favorito
-              </button>
-            </div>
-          </div>
-
-          <div className="card-oscura">
-            <span className="estado-label">ESTADO EN TU BIBLIOTECA</span>
-            <div className="estado-pills">
-              {['quiero_escuchar', 'escuchando', 'escuchado'].map((est) => (
-                <button 
-                  key={est}
-                  className={`estado-pill ${cancion.estadoBiblioteca === est ? 'activo' : ''}`}
-                  onClick={() => handleCambiarEstado(est as EstadoBibliotecaBD)}
-                >
-                  {est.replace('_', ' ').charAt(0).toUpperCase() + est.replace('_', ' ').slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="card-oscura">
-            <h3>Tu valoración</h3>
-            <div className="valoracion-header">
-              <div className="estrellas">
-                {[1, 2, 3, 4, 5].map(num => (
-                  <span key={num} onClick={() => handlePuntuar(num)} style={{cursor: 'pointer', opacity: num <= (cancion.puntuacion || 0) ? 1 : 0.3}}>
-                    ★
-                  </span>
-                ))}
-              </div>
-              <span className="valoracion-texto">{cancion.puntuacion || 0} de 5</span>
-            </div>
-            
-            <div className="resena-area">
-              <span className="estado-label">RESEÑA</span>
-              <textarea 
-                className="resena-textarea" 
-                placeholder="Escribí tu reseña sobre esta canción..."
-                defaultValue={cancion.resena || ''}
-                onBlur={(e) => handleGuardarResena(e.target.value)}
-              />
-              <button className="btn-accion btn-yellow btn-guardar-resena">
-                Guardar reseña
-              </button>
-            </div>
-          </div>
-          
-          <p className="footer-texto">La puntuación y la reseña quedan asociadas a tu cuenta.</p>
-
-          <div className="card-oscura">
-            <h3>Descripción</h3>
-            <p style={{color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5'}}>
-              Una canción de {nombresGeneros} que combina melodías suaves con una base electrónica. La descripción y los metadatos se obtienen del catálogo musical.
-            </p>
-          </div>
+      {/* grid de puntuación y reseñas */}
+      <div className="detalle-interaccion-grid">
+        <section className="interaccion-card">
+          <h3>Tu Puntuación</h3>
+          <p className="interaccion-desc">Calificá esta canción para mejorar tus estadísticas.</p>
+          <FormularioPuntuacion 
+            puntuacionActual={cancion.puntuacion} 
+            onSubmit={handleGuardarPuntuacion} 
+          />
         </section>
-      </main>
+
+        <section className="interaccion-card">
+          <h3>Tu Reseña</h3>
+          <p className="interaccion-desc">¿Qué opinás de esta pista? Guardá tus notas acá.</p>
+          <FormularioReseña 
+            reseñaActual={cancion.resena} 
+            onSubmit={handleGuardarResena} 
+          />
+        </section>
+      </div>
     </div>
   );
 };
