@@ -1,16 +1,15 @@
 import api from './api';
 
-export const obtenerEstadisticasCompletas = async () => {
-  const respuesta = await api.get('/api/estadisticas');
-  return respuesta.data;
+export const obtenerEstadisticasCompletas = async (anio) => {
+  const respuesta = await api.get('/api/estadisticas', {
+    params: anio ? { anio } : {},
+  });
+  return respuesta.data?.estadisticas || respuesta.data;
 };
 
 // Adapta indicadoresGenerales del back al formato que consume Home.tsx
 export const obtenerResumen = async (anio) => {
-  const respuesta = await api.get('/api/estadisticas', {
-    params: anio ? { anio } : {},
-  });
-  const data = respuesta.data?.estadisticas || respuesta.data;
+  const data = await obtenerEstadisticasCompletas(anio);
   const ind = data?.indicadoresGenerales || {};
 
   return {
