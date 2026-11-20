@@ -239,7 +239,7 @@ const { setUser } = useUser() as any;
         nombre: nombreLimpio,
         bio: bioLimpia,
         foto: fotoLimpia,
-        preferencias: preferenciasEdit,
+        preferencias: { generos: preferenciasEdit }, // <-- Enviado como Objeto, no Array
       });
 
       setPerfil((prev) =>
@@ -257,7 +257,6 @@ const { setUser } = useUser() as any;
           : prev
       );
 
-      // Actualiza también el usuario en el Sidebar y Navbar
       setUser((prev: any) =>
         prev
           ? {
@@ -265,17 +264,24 @@ const { setUser } = useUser() as any;
               nombre: nombreLimpio,
               bio: bioLimpia,
               foto: fotoLimpia,
-              preferencias: preferenciasEdit,
+              preferencias: { generos: preferenciasEdit },
             }
           : prev
       );
 
       setIsEditing(false);
+
     } catch (err: any) {
-      setError(
+      const listaErrores = err.response?.data?.errores;
+      const mensajeBase =
         err.response?.data?.mensaje ||
-          err.response?.data?.message ||
-          'Error al guardar los cambios.'
+        err.response?.data?.message ||
+        'Error al guardar los cambios.';
+
+      setError(
+        Array.isArray(listaErrores) && listaErrores.length > 0
+          ? `${mensajeBase}: ${listaErrores.join('. ')}`
+          : mensajeBase
       );
     } finally {
       setSaving(false);
