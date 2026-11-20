@@ -1,0 +1,15 @@
+.lista-canciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lista-canciones.compacta {
+  gap: 6px;
+}
+
+.lista-canciones-vacia {
+  color: var(--texto-secundario, #8e8e98);
+  font-size: 13px;
+  margin: 8px 0 0 0;
+}

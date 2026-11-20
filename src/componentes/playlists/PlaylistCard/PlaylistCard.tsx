@@ -1,36 +1,35 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Coleccion } from '../../../interfaces/interfaz';
 import './PlaylistCard.css';
 
-export interface Playlist {
-  id: number;
-  nombre: string;
-  descripcion?: string;
-  fecha_creacion: string;
-  cantidad_canciones?: number; 
-}
-
 interface PlaylistCardProps {
-  playlist: Playlist;
+  playlist: Coleccion & { total_canciones?: number };
+  varianteColor?: number;
+  compacta?: boolean;
 }
 
-const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
-  const inicial = playlist.nombre.charAt(0).toUpperCase();
+const PlaylistCard: React.FC<PlaylistCardProps> = ({
+  playlist,
+  varianteColor = 1,
+  compacta = false
+}) => {
+  const cantidad = playlist.cantidad_canciones ?? playlist.total_canciones;
 
   return (
-    <Link to={`/playlist/${playlist.id}`} className="playlist-card">
-      <div className="playlist-cover">
-        <span>{inicial}</span>
-      </div>
-      <div className="playlist-info">
-        <h3>{playlist.nombre}</h3>
-        {playlist.descripcion && <p className="playlist-desc">{playlist.descripcion}</p>}
-        <span className="playlist-meta">
-          {playlist.cantidad_canciones !== undefined 
-            ? `${playlist.cantidad_canciones} canciones` 
-            : 'Colección'}
+    <Link
+      to={`/playlist/${playlist.id}`}
+      className={`playlist-card variante-${varianteColor} ${compacta ? 'compacta' : ''}`}
+    >
+      <span className="playlist-card-nombre">{playlist.nombre}</span>
+      {!compacta && playlist.descripcion && (
+        <p className="playlist-card-descripcion">{playlist.descripcion}</p>
+      )}
+      {!compacta && typeof cantidad === 'number' && (
+        <span className="playlist-card-contador">
+          {cantidad} {cantidad === 1 ? 'canción' : 'canciones'}
         </span>
-      </div>
+      )}
     </Link>
   );
 };
