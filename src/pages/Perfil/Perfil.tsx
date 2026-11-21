@@ -26,6 +26,7 @@ interface UserProfile {
   avatarUrl?: string;
   bio: string;
   preferencias: string[];
+  preferenciasRaw?: Record<string, any>;
   generosDisponibles?: string[];
   favoritos: Favorito[];
   actividad: Actividad[];
@@ -48,6 +49,7 @@ const GENEROS_SUGERIDOS = [
 
 const extraerPreferencias = (raw: any): string[] => {
   if (Array.isArray(raw)) return raw;
+  if (raw && Array.isArray(raw.generos_favoritos)) return raw.generos_favoritos;
   if (raw && Array.isArray(raw.generos)) return raw.generos;
   return [];
 };
@@ -123,7 +125,7 @@ const normalizarActividad = (act: any, index: number): Actividad => {
 };
 
 const Perfil: React.FC = () => {
-const { setUser } = useUser() as any;
+  const { setUser } = useUser() as any;
 
   const [perfil, setPerfil] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -181,9 +183,8 @@ const { setUser } = useUser() as any;
         normalizarActividad(act, idx)
       );
 
-      const prefs = extraerPreferencias(
-        rawUsuario.preferencias ?? subPerfil.preferencias
-      );
+      const prefsObjeto = rawUsuario.preferencias ?? subPerfil.preferencias ?? {};
+      const prefs = extraerPreferencias(prefsObjeto);
 
       const perfilArmado: UserProfile = {
         nombre:
@@ -196,6 +197,10 @@ const { setUser } = useUser() as any;
         avatarUrl: rawUsuario.foto ?? subPerfil.foto ?? rawUsuario.avatarUrl ?? '',
         bio: rawUsuario.bio ?? subPerfil.bio ?? '',
         preferencias: prefs,
+        preferenciasRaw:
+          prefsObjeto && typeof prefsObjeto === 'object' && !Array.isArray(prefsObjeto)
+            ? prefsObjeto
+            : {},
         generosDisponibles: Array.from(new Set([...GENEROS_SUGERIDOS, ...prefs])),
         favoritos: favoritosNormalizados,
         actividad: actividadNormalizada,
@@ -233,14 +238,23 @@ const { setUser } = useUser() as any;
 
       const nombreLimpio = nombreEdit.trim() || perfil.nombre;
       const bioLimpia = bioEdit.trim();
-      const fotoLimpia = avatarEdit.trim() || null;
+      const fotoLimpia = avatarEdit.trim();
+      const preferenciasActualizadas = {
+        ...(perfil.preferenciasRaw || {}),
+        generos_favoritos: preferenciasEdit,
+      };
 
-      await perfilService.actualizarPerfil({
+      // Solo enviamos "foto" si el usuario escribió una URL (no es obligatorio)
+      const payload: Record<string, any> = {
         nombre: nombreLimpio,
         bio: bioLimpia,
-        foto: fotoLimpia,
-        preferencias: { generos: preferenciasEdit }, // <-- Enviado como Objeto, no Array
-      });
+        preferencias: preferenciasActualizadas,
+      };
+      if (fotoLimpia) {
+        payload.foto = fotoLimpia;
+      }
+
+      await perfilService.actualizarPerfil(payload);
 
       setPerfil((prev) =>
         prev
@@ -250,6 +264,7 @@ const { setUser } = useUser() as any;
               bio: bioLimpia,
               avatarUrl: fotoLimpia || undefined,
               preferencias: preferenciasEdit,
+              preferenciasRaw: preferenciasActualizadas,
               generosDisponibles: Array.from(
                 new Set([...GENEROS_SUGERIDOS, ...preferenciasEdit])
               ),
@@ -257,31 +272,32 @@ const { setUser } = useUser() as any;
           : prev
       );
 
-      setUser((prev: any) =>
+      setUser?.((prev: any) =>
         prev
           ? {
               ...prev,
               nombre: nombreLimpio,
               bio: bioLimpia,
-              foto: fotoLimpia,
-              preferencias: { generos: preferenciasEdit },
+              ...(fotoLimpia ? { foto: fotoLimpia } : {}),
+              preferencias: preferenciasActualizadas,
             }
           : prev
       );
 
       setIsEditing(false);
-
     } catch (err: any) {
-      const listaErrores = err.response?.data?.errores;
-      const mensajeBase =
-        err.response?.data?.mensaje ||
-        err.response?.data?.message ||
-        'Error al guardar los cambios.';
+      const dataErr = err.response?.data;
+      const detalle = Array.isArray(dataErr?.errores)
+        ? dataErr.errores
+            .map((e: any) => (typeof e === 'string' ? e : e.mensaje || e.msg))
+            .filter(Boolean)
+            .join(' · ')
+        : '';
 
       setError(
-        Array.isArray(listaErrores) && listaErrores.length > 0
-          ? `${mensajeBase}: ${listaErrores.join('. ')}`
-          : mensajeBase
+        detalle
+          ? `${dataErr?.mensaje || 'Datos inválidos'}: ${detalle}`
+          : dataErr?.mensaje || dataErr?.message || 'Error al guardar los cambios.'
       );
     } finally {
       setSaving(false);
@@ -290,6 +306,7 @@ const { setUser } = useUser() as any;
 
   const handleCancelarEdicion = () => {
     if (perfil) sincronizarFormulario(perfil);
+    setError(null);
     setIsEditing(false);
   };
 
@@ -307,6 +324,7 @@ const { setUser } = useUser() as any;
   const listaGeneros = isEditing
     ? perfil.generosDisponibles || GENEROS_SUGERIDOS
     : perfil.preferencias;
+  const avatarVisible = isEditing ? avatarEdit.trim() : perfil.avatarUrl;
 
   return (
     <div className="perfil-container">
@@ -317,16 +335,15 @@ const { setUser } = useUser() as any;
             Editá tus datos personales y preferencias musicales.
           </p>
         </div>
-        <div className="avatar-badge-top">{inicial}</div>
       </header>
 
       {error && <div className="perfil-alerta-error">{error}</div>}
 
       <section className="perfil-card-principal">
         <div className="perfil-info-wrapper">
-          {perfil.avatarUrl && !isEditing ? (
+          {avatarVisible ? (
             <img
-              src={perfil.avatarUrl}
+              src={avatarVisible}
               alt={perfil.nombre}
               className="perfil-avatar-img"
             />
@@ -356,11 +373,12 @@ const { setUser } = useUser() as any;
                   />
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">URL de Avatar</label>
+                  <label className="form-label">URL de Avatar (opcional)</label>
                   <input
                     type="text"
                     value={avatarEdit}
                     onChange={(e) => setAvatarEdit(e.target.value)}
+                    placeholder="https://..."
                     className="form-input"
                   />
                 </div>
@@ -374,7 +392,9 @@ const { setUser } = useUser() as any;
             )}
 
             <div className="perfil-preferencias">
-              <span className="preferencias-titulo">Mis géneros</span>
+              <span className="preferencias-titulo">
+                Mis géneros {isEditing && '(tocá para elegir)'}
+              </span>
               {listaGeneros.length === 0 ? (
                 <p className="texto-vacio">
                   Sin géneros seleccionados. Hacé clic en "Editar perfil" para elegir.
@@ -392,7 +412,7 @@ const { setUser } = useUser() as any;
                           isEditing ? 'genero-pill--editable' : ''
                         } ${isEditing && activo ? 'genero-pill--activo' : ''}`}
                       >
-                        {genero}
+                        {isEditing && activo ? `✓ ${genero}` : genero}
                       </button>
                     );
                   })}
@@ -412,13 +432,24 @@ const { setUser } = useUser() as any;
               Editar perfil
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={handleCancelarEdicion}
-              className="btn-cancelar"
-            >
-              Cancelar
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleGuardarCambios}
+                disabled={saving}
+                className="btn-guardar"
+              >
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelarEdicion}
+                disabled={saving}
+                className="btn-cancelar"
+              >
+                Cancelar
+              </button>
+            </>
           )}
         </div>
       </section>
@@ -477,19 +508,6 @@ const { setUser } = useUser() as any;
           )}
         </section>
       </div>
-
-      {isEditing && (
-        <div className="perfil-footer-acciones">
-          <button
-            type="button"
-            onClick={handleGuardarCambios}
-            disabled={saving}
-            className="btn-guardar"
-          >
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </button>
-        </div>
-      )}
     </div>
   );
 };

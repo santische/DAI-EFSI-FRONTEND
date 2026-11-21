@@ -21,8 +21,10 @@ const CancionCard: React.FC<CancionCardProps> = ({
   cancion,
   indiceColor = 0,
   compacta = false,
-  onToggleFavorito
+  onToggleFavorito,
 }) => {
+  const idCancion = (cancion as Cancion & { cancion_id?: number }).cancion_id ?? cancion.id;
+
   const nombresArtistas =
     cancion.artistas && cancion.artistas.length > 0
       ? cancion.artistas.map((a) => a.nombre).join(', ')
@@ -32,7 +34,7 @@ const CancionCard: React.FC<CancionCardProps> = ({
 
   return (
     <div className={`cancion-card ${compacta ? 'compacta' : ''}`}>
-      <Link to={`/cancion/${cancion.id}`} className="cancion-card-link">
+      <Link to={`/cancion/${idCancion}`} className="cancion-card-link">
         <div className="cancion-portada">
           {cancion.foto ? (
             <img src={cancion.foto} alt={cancion.titulo} />
@@ -59,7 +61,7 @@ const CancionCard: React.FC<CancionCardProps> = ({
       {onToggleFavorito && (
         <BotonFavorito
           esFavorito={Boolean(cancion.es_favorita)}
-          onToggle={() => onToggleFavorito(cancion.id)}
+          onToggle={() => onToggleFavorito(idCancion)}
         />
       )}
     </div>

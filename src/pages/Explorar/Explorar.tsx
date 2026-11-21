@@ -1,64 +1,75 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useUser } from '../../context/UserContext/UserContext';
-import * as musicaService from '../../services/musicaService';
-import * as bibliotecaService from '../../services/bibliotecaService';
+import { useNavigate } from 'react-router-dom';
+import BotonFavorito from '../../componentes/biblioteca/BotonFavorito/BotonFavorito';
+import { buscarMusica, importarMusica } from '../../services/musicaService';
+import {
+  obtenerBiblioteca,
+  agregarABiblioteca,
+  toggleFavorito,
+} from '../../services/bibliotecaService';
+import { obtenerPerfil } from '../../services/perfilService';
 import './Explorar.css';
 
 export type OrdenamientoTipo = 'relevancia' | 'fecha_lanzamiento';
 
 export interface CancionExplorar {
-  id: string;
-  cancionIdLocal?: number;
+  clave: string;
+  id?: number;
   mbid?: string;
   titulo: string;
   artista: string;
   genero: string;
   subtituloTipo: string;
-  fechaLanzamiento: string;
-  imagenUrl?: string;
-  colorTarjeta?: string;
+  imagenUrl?: string | null;
+  oyentes?: number;
   enBiblioteca: boolean;
   esFavorito: boolean;
 }
 
-export interface RespuestaExplorar {
-  canciones: CancionExplorar[];
-  generos: string[];
-}
-
-export interface UsuarioHeader {
+interface UsuarioHeader {
   nombre: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 }
 
-const GENEROS_BASE = ['Pop', 'Rock', 'Indie', 'Hip-Hop', 'Electrónica', 'Jazz', 'R&B'];
-const COLORES_TARJETA = ['#b497ff', '#facc15', '#f4a6d7', '#7dd3fc'];
+const GENEROS_DEFAULT = [
+  'Pop',
+  'Rock',
+  'Indie',
+  'Hip-Hop',
+  'Electrónica',
+  'Jazz',
+  'R&B',
+];
 
 const Explorar: React.FC = () => {
-  const { user } = useUser();
+  const navigate = useNavigate();
 
   const [busqueda, setBusqueda] = useState<string>('');
   const [generoActivo, setGeneroActivo] = useState<string>('');
   const [ordenarPor, setOrdenarPor] = useState<OrdenamientoTipo>('relevancia');
 
   const [canciones, setCanciones] = useState<CancionExplorar[]>([]);
-  const [generos, setGeneros] = useState<string[]>(GENEROS_BASE);
+  const [generos] = useState<string[]>(GENEROS_DEFAULT);
+  const [usuario, setUsuario] = useState<UsuarioHeader | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [procesandoId, setProcesandoId] = useState<string | null>(null);
+  const [procesandoClave, setProcesandoClave] = useState<string | null>(null);
 
-  const usuario: UsuarioHeader | null = user
-    ? {
-        nombre: user.nombre || user.username,
-        avatarUrl: user.foto || undefined,
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      try {
+        const res = await obtenerPerfil();
+        const u = res?.usuario ?? res;
+        if (u?.nombre) {
+          setUsuario({ nombre: u.nombre, avatarUrl: u.foto ?? u.avatarUrl });
+        }
+      } catch {
+        // Silencioso si el header global maneja la sesión
       }
-    : null;
-
-  const extraerLista = (res: any): any[] => {
-    if (Array.isArray(res)) return res;
-    return res?.items ?? res?.canciones ?? res?.resultados ?? res?.tracks ?? [];
-  };
+    };
+    fetchUsuario();
+  }, []);
 
   const buscarEnCatalogo = useCallback(
     async (queryTexto: string, genero: string, orden: OrdenamientoTipo) => {
@@ -66,105 +77,111 @@ const Explorar: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const termino = queryTexto.trim() || genero || 'pop';
-        const filtros: Record<string, any> = { limite: 24 };
-        if (genero) filtros.genero = genero;
-        if (orden !== 'relevancia') filtros.orden = orden;
+        const termino =
+          queryTexto.trim() || (genero ? genero.toLowerCase() : 'pop');
 
-        const [resMusica, resBiblioteca] = await Promise.all([
-          musicaService.buscarMusica(termino, filtros),
-          bibliotecaService.obtenerBiblioteca().catch(() => []),
+        const [resMusica, resBib] = await Promise.all([
+          buscarMusica(termino, {
+            orden: orden === 'relevancia' ? 'oyentes' : 'fecha',
+            dir: 'desc',
+            limite: 24,
+          }),
+          obtenerBiblioteca().catch(() => []),
         ]);
 
-        let listaCruda = extraerLista(resMusica);
+        const itemsBib = Array.isArray(resBib) ? resBib : resBib?.items ?? [];
+        const mapaPorId = new Map<
+          number,
+          { id?: number; enBiblioteca: boolean; esFavorito: boolean }
+        >();
+        const mapaPorNombre = new Map<
+          string,
+          { id?: number; enBiblioteca: boolean; esFavorito: boolean }
+        >();
 
-        // Si no hay término y el back devuelve vacío (Last.fm requiere query), pedimos un término inicial
-        if (listaCruda.length === 0 && !termino) {
-          const resFallback = await musicaService.buscarMusica('top hits', { limite: 24 });
-          listaCruda = extraerLista(resFallback);
-        }
-
-        // Mapa de canciones ya guardadas en la biblioteca del usuario
-        const itemsBib = Array.isArray(resBiblioteca)
-          ? resBiblioteca
-          : resBiblioteca?.items ?? resBiblioteca?.biblioteca ?? [];
-
-        const mapaPorId = new Map<number, any>();
-        const mapaPorClave = new Map<string, any>();
-
-        itemsBib.forEach((b: any) => {
-          const cId = b.cancion_id ?? b.id;
-          if (typeof cId === 'number') mapaPorId.set(cId, b);
-
-          const tit = (b.titulo ?? b.cancion?.titulo ?? '').toLowerCase().trim();
-          const art = (
-            b.artista ??
-            (Array.isArray(b.artistas) ? b.artistas.map((a: any) => a.nombre ?? a).join(', ') : '')
-          )
-            .toLowerCase()
-            .trim();
-          if (tit) mapaPorClave.set(`${tit}::${art}`, b);
+        itemsBib.forEach((item: any) => {
+          const cancionId = Number(item.cancion_id ?? item.id);
+          const estado = {
+            id: Number.isNaN(cancionId) ? undefined : cancionId,
+            enBiblioteca: true,
+            esFavorito: Boolean(item.es_favorita),
+          };
+          if (!Number.isNaN(cancionId)) {
+            mapaPorId.set(cancionId, estado);
+          }
+          const artistaItem =
+            item.artista ??
+            (Array.isArray(item.artistas) && item.artistas.length > 0
+              ? item.artistas[0].nombre ?? item.artistas[0]
+              : '');
+          if (item.titulo) {
+            mapaPorNombre.set(
+              `${String(item.titulo).toLowerCase()}|${String(artistaItem).toLowerCase()}`,
+              estado
+            );
+          }
         });
 
-        const cancionesNormalizadas: CancionExplorar[] = listaCruda.map(
-          (item: any, index: number) => {
-            const c = item.cancion ?? item;
-            const titulo = c.titulo ?? c.name ?? 'Sin título';
-            const artista =
+        const listaCruda = Array.isArray(resMusica)
+          ? resMusica
+          : resMusica?.items ??
+            resMusica?.canciones ??
+            resMusica?.resultados ??
+            [];
+
+        const mapeadas: CancionExplorar[] = listaCruda.map(
+          (raw: any, index: number) => {
+            const c = raw.cancion ?? raw;
+            const idNum =
+              typeof c.id === 'number'
+                ? c.id
+                : c.id && !Number.isNaN(Number(c.id))
+                ? Number(c.id)
+                : undefined;
+
+            const tituloStr = c.titulo ?? c.name ?? 'Sin título';
+            const artistaStr =
               c.artista ??
               (Array.isArray(c.artistas) && c.artistas.length > 0
                 ? c.artistas.map((a: any) => a.nombre ?? a).join(', ')
-                : 'Artista desconocido');
+                : typeof c.artist === 'string'
+                ? c.artist
+                : c.artist?.name ?? 'Artista desconocido');
 
-            const idNumerico = typeof c.id === 'number' ? c.id : undefined;
-            const mbid = c.mbid ?? c.external_id ?? undefined;
-            const claveTexto = `${titulo.toLowerCase().trim()}::${artista.toLowerCase().trim()}`;
-            const enBib =
-              (idNumerico !== undefined ? mapaPorId.get(idNumerico) : undefined) ??
-              mapaPorClave.get(claveTexto);
+            const claveNombre = `${tituloStr.toLowerCase()}|${artistaStr.toLowerCase()}`;
+            const estadoBib =
+              (idNum !== undefined ? mapaPorId.get(idNum) : undefined) ??
+              mapaPorNombre.get(claveNombre);
 
-            const generoCancion =
-              c.genero ??
-              (Array.isArray(c.generos) && c.generos.length > 0
-                ? c.generos[0]?.nombre ?? c.generos[0]
-                : genero || '');
-
-            const subtituloTipo =
-              c.subtituloTipo ??
-              (c.oyentes
-                ? `${Number(c.oyentes).toLocaleString('es-AR')} oyentes`
-                : c.album?.titulo ?? 'Canción');
+            const oyentesNum =
+              c.oyentes !== undefined ? Number(c.oyentes) : undefined;
 
             return {
-              id: String(idNumerico ?? mbid ?? `${titulo}-${artista}-${index}`),
-              cancionIdLocal: idNumerico ?? enBib?.cancion_id ?? enBib?.id,
-              mbid: mbid ? String(mbid) : undefined,
-              titulo,
-              artista,
-              genero: generoCancion,
-              subtituloTipo,
-              fechaLanzamiento: c.fechaLanzamiento ?? c.fecha_lanzamiento ?? '',
-              imagenUrl: c.imagenUrl ?? c.foto ?? c.imagen ?? undefined,
-              colorTarjeta: c.colorTarjeta ?? COLORES_TARJETA[index % COLORES_TARJETA.length],
-              enBiblioteca: Boolean(enBib || c.enBiblioteca),
-              esFavorito: Boolean(enBib?.es_favorita ?? c.esFavorito ?? c.es_favorita),
+              clave: String(
+                idNum ?? c.mbid ?? `${tituloStr}-${artistaStr}-${index}`
+              ),
+              id: idNum ?? estadoBib?.id,
+              mbid: c.mbid ?? c.external_id ?? undefined,
+              titulo: tituloStr,
+              artista: artistaStr,
+              genero:
+                c.genero ??
+                (Array.isArray(c.generos) && c.generos[0]) ??
+                genero ??
+                '',
+              subtituloTipo:
+                oyentesNum !== undefined && !Number.isNaN(oyentesNum)
+                  ? `${oyentesNum.toLocaleString('es-AR')} oyentes`
+                  : 'Canción del catálogo',
+              imagenUrl: c.foto ?? c.imagen ?? null,
+              oyentes: oyentesNum,
+              enBiblioteca: Boolean(estadoBib?.enBiblioteca),
+              esFavorito: Boolean(estadoBib?.esFavorito),
             };
           }
         );
 
-        if (orden === 'fecha_lanzamiento') {
-          cancionesNormalizadas.sort((a, b) =>
-            (b.fechaLanzamiento || '').localeCompare(a.fechaLanzamiento || '')
-          );
-        }
-
-        setCanciones(cancionesNormalizadas);
-
-        if (Array.isArray(resMusica?.generos) && resMusica.generos.length > 0) {
-          setGeneros(
-            resMusica.generos.map((g: any) => (typeof g === 'string' ? g : g.nombre))
-          );
-        }
+        setCanciones(mapeadas);
       } catch (err: any) {
         setError(
           err.response?.data?.mensaje ||
@@ -188,41 +205,67 @@ const Explorar: React.FC = () => {
     buscarEnCatalogo(busqueda, generoActivo, ordenarPor);
   };
 
-  const construirPayloadCancion = (cancion: CancionExplorar) => {
-    if (cancion.cancionIdLocal) {
-      return { cancionId: cancion.cancionIdLocal };
-    }
-    return {
+  const asegurarIdLocal = async (
+    cancion: CancionExplorar
+  ): Promise<number | undefined> => {
+    if (typeof cancion.id === 'number') return cancion.id;
+
+    const res = await importarMusica({
       titulo: cancion.titulo,
       artista: cancion.artista,
       ...(cancion.mbid ? { mbid: cancion.mbid } : {}),
-    };
+    });
+
+    const idLocal = Number(res?.cancion?.id ?? res?.id);
+    if (!Number.isNaN(idLocal)) {
+      setCanciones((prev) =>
+        prev.map((c) => (c.clave === cancion.clave ? { ...c, id: idLocal } : c))
+      );
+      return idLocal;
+    }
+    return undefined;
   };
 
-  const handleGuardarBiblioteca = async (cancionId: string) => {
-    const cancion = canciones.find((c) => c.id === cancionId);
-    if (!cancion) return;
-
+  const handleVerDetalle = async (cancion: CancionExplorar) => {
     try {
-      setProcesandoId(cancionId);
-      setError(null);
+      setProcesandoClave(cancion.clave);
+      const idLocal = await asegurarIdLocal(cancion);
+      if (idLocal) {
+        navigate(`/cancion/${idLocal}`);
+      }
+    } catch (err: any) {
+      setError(
+        err.response?.data?.mensaje ||
+          'No se pudo abrir el detalle de la canción.'
+      );
+    } finally {
+      setProcesandoClave(null);
+    }
+  };
 
-      const res = await bibliotecaService.agregarABiblioteca({
-        ...construirPayloadCancion(cancion),
-        estado: 'quiero_escuchar',
-      });
+  const handleGuardarBiblioteca = async (cancion: CancionExplorar) => {
+    try {
+      setProcesandoClave(cancion.clave);
+      const payload = cancion.id
+        ? { cancionId: cancion.id }
+        : {
+            titulo: cancion.titulo,
+            artista: cancion.artista,
+            ...(cancion.mbid ? { mbid: cancion.mbid } : {}),
+          };
 
-      const nuevoIdLocal =
-        res?.item?.cancion_id ?? res?.cancion_id ?? res?.cancion?.id ?? cancion.cancionIdLocal;
+      const res = await agregarABiblioteca(payload);
+      const nuevoId = Number(
+        res?.item?.cancion_id ?? res?.cancion_id ?? cancion.id
+      );
 
       setCanciones((prev) =>
         prev.map((c) =>
-          c.id === cancionId
+          c.clave === cancion.clave
             ? {
                 ...c,
+                id: Number.isNaN(nuevoId) ? c.id : nuevoId,
                 enBiblioteca: true,
-                cancionIdLocal:
-                  typeof nuevoIdLocal === 'number' ? nuevoIdLocal : c.cancionIdLocal,
               }
             : c
         )
@@ -234,39 +277,44 @@ const Explorar: React.FC = () => {
           'No se pudo guardar en tu biblioteca.'
       );
     } finally {
-      setProcesandoId(null);
+      setProcesandoClave(null);
     }
   };
 
   const handleToggleFavorito = async (cancion: CancionExplorar) => {
     try {
-      setProcesandoId(cancion.id);
-      setError(null);
+      setProcesandoClave(cancion.clave);
+      const nuevoValor = !cancion.esFavorito;
+      let cancionId = cancion.id;
 
-      const nuevoEstadoFavorito = !cancion.esFavorito;
-      let nuevoIdLocal = cancion.cancionIdLocal;
-
-      if (!cancion.enBiblioteca || !nuevoIdLocal) {
-        // Si aún no estaba en biblioteca, la guarda y la marca como favorita en un paso
-        const res = await bibliotecaService.agregarABiblioteca({
-          ...construirPayloadCancion(cancion),
-          estado: 'quiero_escuchar',
-          es_favorita: nuevoEstadoFavorito,
+      if (!cancionId) {
+        const res = await agregarABiblioteca({
+          titulo: cancion.titulo,
+          artista: cancion.artista,
+          es_favorita: nuevoValor,
+          ...(cancion.mbid ? { mbid: cancion.mbid } : {}),
         });
-        const idDevuelto = res?.item?.cancion_id ?? res?.cancion_id ?? res?.cancion?.id;
-        if (typeof idDevuelto === 'number') nuevoIdLocal = idDevuelto;
+        const idCreado = Number(res?.item?.cancion_id ?? res?.cancion_id);
+        if (!Number.isNaN(idCreado)) cancionId = idCreado;
       } else {
-        await bibliotecaService.toggleFavorito(nuevoIdLocal, nuevoEstadoFavorito);
+        if (!cancion.enBiblioteca) {
+          await agregarABiblioteca({
+            cancionId,
+            es_favorita: nuevoValor,
+          });
+        } else {
+          await toggleFavorito(cancionId, nuevoValor);
+        }
       }
 
       setCanciones((prev) =>
         prev.map((c) =>
-          c.id === cancion.id
+          c.clave === cancion.clave
             ? {
                 ...c,
+                id: cancionId ?? c.id,
                 enBiblioteca: true,
-                cancionIdLocal: nuevoIdLocal,
-                esFavorito: nuevoEstadoFavorito,
+                esFavorito: nuevoValor,
               }
             : c
         )
@@ -278,11 +326,13 @@ const Explorar: React.FC = () => {
           'Error al actualizar favoritos.'
       );
     } finally {
-      setProcesandoId(null);
+      setProcesandoClave(null);
     }
   };
 
-  const inicialUsuario = usuario?.nombre ? usuario.nombre.charAt(0).toUpperCase() : '';
+  const inicialUsuario = usuario?.nombre
+    ? usuario.nombre.charAt(0).toUpperCase()
+    : '';
 
   return (
     <div className="explorar-container">
@@ -322,7 +372,7 @@ const Explorar: React.FC = () => {
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por canción o artista..."
+            placeholder="Buscar canciones o artistas"
             className="search-input"
           />
         </div>
@@ -338,7 +388,9 @@ const Explorar: React.FC = () => {
             <button
               type="button"
               onClick={() => setGeneroActivo('')}
-              className={`pill-genero ${generoActivo === '' ? 'pill-genero--activo' : ''}`}
+              className={`pill-genero ${
+                generoActivo === '' ? 'pill-genero--activo' : ''
+              }`}
             >
               Todos
             </button>
@@ -388,8 +440,14 @@ const Explorar: React.FC = () => {
           {canciones.map((cancion) => {
             const inicialCancion = cancion.titulo.charAt(0).toUpperCase();
             return (
-              <article key={cancion.id} className="track-card">
-                <div className="track-card-top">
+              <article key={cancion.clave} className="track-card">
+                <div
+                  className="track-card-top"
+                  onClick={() => handleVerDetalle(cancion)}
+                  role="button"
+                  tabIndex={0}
+                  style={{ cursor: 'pointer' }}
+                >
                   {cancion.imagenUrl ? (
                     <img
                       src={cancion.imagenUrl}
@@ -397,14 +455,7 @@ const Explorar: React.FC = () => {
                       className="track-cover-img"
                     />
                   ) : (
-                    <div
-                      className="track-cover-placeholder"
-                      style={
-                        cancion.colorTarjeta
-                          ? { backgroundColor: cancion.colorTarjeta }
-                          : undefined
-                      }
-                    >
+                    <div className="track-cover-placeholder">
                       <span className="cover-inicial">{inicialCancion}</span>
                       <div className="cover-bottom">
                         <span className="cover-genero">{cancion.genero}</span>
@@ -431,34 +482,24 @@ const Explorar: React.FC = () => {
                 <div className="track-acciones">
                   <button
                     type="button"
-                    onClick={() => handleGuardarBiblioteca(cancion.id)}
-                    disabled={cancion.enBiblioteca || procesandoId === cancion.id}
+                    onClick={() => handleGuardarBiblioteca(cancion)}
+                    disabled={
+                      cancion.enBiblioteca || procesandoClave === cancion.clave
+                    }
                     className={`btn-biblioteca ${
                       cancion.enBiblioteca ? 'btn-biblioteca--guardado' : ''
                     }`}
                   >
-                    {cancion.enBiblioteca ? 'En tu biblioteca' : 'Guardar en biblioteca'}
+                    {cancion.enBiblioteca
+                      ? 'En tu biblioteca'
+                      : 'Guardar en biblioteca'}
                   </button>
 
-                  <button
-                    type="button"
-                    aria-label="Marcar como favorito"
-                    onClick={() => handleToggleFavorito(cancion)}
-                    disabled={procesandoId === cancion.id}
-                    className={`btn-favorito ${
-                      cancion.esFavorito ? 'btn-favorito--activo' : ''
-                    }`}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill={cancion.esFavorito ? 'currentColor' : 'none'}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="heart-icon"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </button>
+                  <BotonFavorito
+                    esFavorito={cancion.esFavorito}
+                    onToggle={() => handleToggleFavorito(cancion)}
+                    disabled={procesandoClave === cancion.clave}
+                  />
                 </div>
               </article>
             );
