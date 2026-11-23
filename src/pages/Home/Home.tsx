@@ -109,9 +109,8 @@ const Home: React.FC = () => {
         artistas_escuchados: resumen?.artistas_escuchados ?? 0,
         favoritos: Array.isArray(favoritos) ? favoritos : favoritos?.favoritos ?? [],
         actividad_reciente: Array.isArray(actividad) ? actividad : actividad?.actividad ?? [],
-        colecciones: Array.isArray(colecciones) ? colecciones : colecciones?.colecciones ?? []
-      });
-    } catch (err: any) {
+colecciones: Array.isArray(colecciones) ? colecciones : (colecciones as any)?.colecciones ?? []      });
+} catch (err: any) {
       setError(err.response?.data?.mensaje || 'Error al cargar los datos del inicio.');
     } finally {
       setCargando(false);
