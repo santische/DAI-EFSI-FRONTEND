@@ -484,3 +484,22 @@
   border-color: var(--lila, #b497ff);
   color: #ffffff;
 }
+
+.btn-ver-mas-actividad {
+  margin-top: 14px;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--lila, #b497ff);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-ver-mas-actividad:hover {
+  background-color: rgba(180, 151, 255, 0.12);
+  border-color: rgba(180, 151, 255, 0.4);
+}

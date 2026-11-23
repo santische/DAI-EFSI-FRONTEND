@@ -26,7 +26,6 @@ interface UserProfile {
   avatarUrl?: string;
   bio: string;
   preferencias: string[];
-  preferenciasRaw?: Record<string, any>;
   generosDisponibles?: string[];
   favoritos: Favorito[];
   actividad: Actividad[];
@@ -47,9 +46,10 @@ const GENEROS_SUGERIDOS = [
   'Alternativo',
 ];
 
+const LIMITE_ACTIVIDAD_INICIAL = 3;
+
 const extraerPreferencias = (raw: any): string[] => {
   if (Array.isArray(raw)) return raw;
-  if (raw && Array.isArray(raw.generos_favoritos)) return raw.generos_favoritos;
   if (raw && Array.isArray(raw.generos)) return raw.generos;
   return [];
 };
@@ -132,6 +132,7 @@ const Perfil: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const [mostrarTodaActividad, setMostrarTodaActividad] = useState<boolean>(false);
 
   const [nombreEdit, setNombreEdit] = useState<string>('');
   const [bioEdit, setBioEdit] = useState<string>('');
@@ -153,7 +154,7 @@ const Perfil: React.FC = () => {
       const [resPerfil, resFavoritos, resActividad] = await Promise.all([
         perfilService.obtenerPerfil(),
         bibliotecaService.obtenerFavoritos().catch(() => []),
-        perfilService.obtenerActividadPerfil(10, 1).catch(() => []),
+        perfilService.obtenerActividadPerfil(20, 1).catch(() => []),
       ]);
 
       const rawUsuario =
@@ -183,8 +184,9 @@ const Perfil: React.FC = () => {
         normalizarActividad(act, idx)
       );
 
-      const prefsObjeto = rawUsuario.preferencias ?? subPerfil.preferencias ?? {};
-      const prefs = extraerPreferencias(prefsObjeto);
+      const prefs = extraerPreferencias(
+        rawUsuario.preferencias ?? subPerfil.preferencias
+      );
 
       const perfilArmado: UserProfile = {
         nombre:
@@ -197,10 +199,6 @@ const Perfil: React.FC = () => {
         avatarUrl: rawUsuario.foto ?? subPerfil.foto ?? rawUsuario.avatarUrl ?? '',
         bio: rawUsuario.bio ?? subPerfil.bio ?? '',
         preferencias: prefs,
-        preferenciasRaw:
-          prefsObjeto && typeof prefsObjeto === 'object' && !Array.isArray(prefsObjeto)
-            ? prefsObjeto
-            : {},
         generosDisponibles: Array.from(new Set([...GENEROS_SUGERIDOS, ...prefs])),
         favoritos: favoritosNormalizados,
         actividad: actividadNormalizada,
@@ -238,23 +236,14 @@ const Perfil: React.FC = () => {
 
       const nombreLimpio = nombreEdit.trim() || perfil.nombre;
       const bioLimpia = bioEdit.trim();
-      const fotoLimpia = avatarEdit.trim();
-      const preferenciasActualizadas = {
-        ...(perfil.preferenciasRaw || {}),
-        generos_favoritos: preferenciasEdit,
-      };
+      const fotoLimpia = avatarEdit.trim() || null;
 
-      // Solo enviamos "foto" si el usuario escribió una URL (no es obligatorio)
-      const payload: Record<string, any> = {
+      await perfilService.actualizarPerfil({
         nombre: nombreLimpio,
         bio: bioLimpia,
-        preferencias: preferenciasActualizadas,
-      };
-      if (fotoLimpia) {
-        payload.foto = fotoLimpia;
-      }
-
-      await perfilService.actualizarPerfil(payload);
+        foto: fotoLimpia,
+        preferencias: preferenciasEdit,
+      });
 
       setPerfil((prev) =>
         prev
@@ -264,7 +253,6 @@ const Perfil: React.FC = () => {
               bio: bioLimpia,
               avatarUrl: fotoLimpia || undefined,
               preferencias: preferenciasEdit,
-              preferenciasRaw: preferenciasActualizadas,
               generosDisponibles: Array.from(
                 new Set([...GENEROS_SUGERIDOS, ...preferenciasEdit])
               ),
@@ -278,26 +266,18 @@ const Perfil: React.FC = () => {
               ...prev,
               nombre: nombreLimpio,
               bio: bioLimpia,
-              ...(fotoLimpia ? { foto: fotoLimpia } : {}),
-              preferencias: preferenciasActualizadas,
+              foto: fotoLimpia,
+              preferencias: preferenciasEdit,
             }
           : prev
       );
 
       setIsEditing(false);
     } catch (err: any) {
-      const dataErr = err.response?.data;
-      const detalle = Array.isArray(dataErr?.errores)
-        ? dataErr.errores
-            .map((e: any) => (typeof e === 'string' ? e : e.mensaje || e.msg))
-            .filter(Boolean)
-            .join(' · ')
-        : '';
-
       setError(
-        detalle
-          ? `${dataErr?.mensaje || 'Datos inválidos'}: ${detalle}`
-          : dataErr?.mensaje || dataErr?.message || 'Error al guardar los cambios.'
+        err.response?.data?.mensaje ||
+          err.response?.data?.message ||
+          'Error al guardar los cambios.'
       );
     } finally {
       setSaving(false);
@@ -306,7 +286,6 @@ const Perfil: React.FC = () => {
 
   const handleCancelarEdicion = () => {
     if (perfil) sincronizarFormulario(perfil);
-    setError(null);
     setIsEditing(false);
   };
 
@@ -325,6 +304,10 @@ const Perfil: React.FC = () => {
     ? perfil.generosDisponibles || GENEROS_SUGERIDOS
     : perfil.preferencias;
   const avatarVisible = isEditing ? avatarEdit.trim() : perfil.avatarUrl;
+
+  const actividadesVisibles = mostrarTodaActividad
+    ? perfil.actividad
+    : perfil.actividad.slice(0, LIMITE_ACTIVIDAD_INICIAL);
 
   return (
     <div className="perfil-container">
@@ -373,7 +356,7 @@ const Perfil: React.FC = () => {
                   />
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">URL de Avatar (opcional)</label>
+                  <label className="form-label">URL de Avatar</label>
                   <input
                     type="text"
                     value={avatarEdit}
@@ -487,24 +470,36 @@ const Perfil: React.FC = () => {
           {perfil.actividad.length === 0 ? (
             <p className="texto-vacio">No hay actividad registrada.</p>
           ) : (
-            <div className="actividad-lista">
-              {perfil.actividad.map((act) => (
-                <div key={act.id} className="actividad-item">
-                  <div className="actividad-info">
-                    <span
-                      className={`actividad-dot ${
-                        act.esReciente ? 'actividad-dot--reciente' : ''
-                      }`}
-                    />
-                    <div>
-                      <p className="actividad-accion">{act.accion}</p>
-                      <p className="actividad-detalle">{act.detalle}</p>
+            <>
+              <div className="actividad-lista">
+                {actividadesVisibles.map((act) => (
+                  <div key={act.id} className="actividad-item">
+                    <div className="actividad-info">
+                      <span
+                        className={`actividad-dot ${
+                          act.esReciente ? 'actividad-dot--reciente' : ''
+                        }`}
+                      />
+                      <div>
+                        <p className="actividad-accion">{act.accion}</p>
+                        <p className="actividad-detalle">{act.detalle}</p>
+                      </div>
                     </div>
+                    <span className="actividad-fecha">{act.fecha}</span>
                   </div>
-                  <span className="actividad-fecha">{act.fecha}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {perfil.actividad.length > LIMITE_ACTIVIDAD_INICIAL && (
+                <button
+                  type="button"
+                  className="btn-ver-mas-actividad"
+                  onClick={() => setMostrarTodaActividad((prev) => !prev)}
+                >
+                  {mostrarTodaActividad ? 'Ver menos' : 'Ver más'}
+                </button>
+              )}
+            </>
           )}
         </section>
       </div>

@@ -44,23 +44,23 @@ interface TopGenero {
   reproducciones: number;
 }
 
-interface MesEscucha {
-  mes: string;
+interface ActividadDia {
+  dia_numero: number;
+  dia: string;
+  reproducciones: number;
   minutos: number;
 }
 
 interface EstadisticasAPI {
+  resumenPersonalizado?: string;
   indicadoresGenerales: IndicadoresGenerales;
   topArtistas: TopArtista[];
   topCanciones: TopCancion[];
   topGeneros: TopGenero[];
-  escuchaMensual?: MesEscucha[];
+  actividadPorDia?: ActividadDia[];
 }
 
-const MESES_CORTOS = [
-  'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
-  'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC',
-];
+const DIAS_CORTOS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 
 const INDICADORES_VACIOS: IndicadoresGenerales = {
   segundosTotales: 0,
@@ -95,7 +95,7 @@ const Estadisticas: React.FC = () => {
     try {
       setCargando(true);
       setError(null);
-      const respuesta = await estadisticasService.obtenerEstadisticasCompletas(anioSeleccionado);
+      const respuesta: any = await estadisticasService.obtenerEstadisticasCompletas(anioSeleccionado);
       setDatos(respuesta?.estadisticas ?? respuesta);
     } catch (err: any) {
       setError(
@@ -125,17 +125,17 @@ const Estadisticas: React.FC = () => {
   const generoTop = topGeneros[0]?.nombre ? capitalizar(topGeneros[0].nombre) : 'Sin datos';
   const artistasEscuchados = topArtistas.length;
 
-  const datosMensuales: MesEscucha[] = MESES_CORTOS.map((etiqueta, idx) => {
-    const encontrado = datos?.escuchaMensual?.find(
-      (m, mIdx) => m.mes?.toUpperCase() === etiqueta || mIdx === idx
-    );
+  const datosDias = DIAS_CORTOS.map((etiqueta, idx) => {
+    const encontrado = datos?.actividadPorDia?.find((d) => d.dia_numero === idx);
     return {
-      mes: etiqueta,
+      etiqueta,
+      dia: encontrado?.dia || etiqueta,
       minutos: encontrado?.minutos ?? 0,
+      reproducciones: encontrado?.reproducciones ?? 0,
     };
   });
 
-  const maxMinutosMes = Math.max(...datosMensuales.map((m) => m.minutos), 0);
+  const maxMinutosDia = Math.max(...datosDias.map((d) => d.minutos), 0);
   const maxGeneroRep = Math.max(...topGeneros.map((g) => g.reproducciones), 0);
 
   return (
@@ -144,7 +144,10 @@ const Estadisticas: React.FC = () => {
       <header className="estadisticas-header">
         <div className="estadisticas-header-texto">
           <h1>Estadísticas musicales</h1>
-          <p>Indicadores calculados a partir de tu actividad guardada.</p>
+          <p>
+            {datos?.resumenPersonalizado ||
+              'Indicadores calculados a partir de tu actividad guardada.'}
+          </p>
         </div>
 
         <select
@@ -198,33 +201,33 @@ const Estadisticas: React.FC = () => {
         </article>
       </section>
 
-      {/* Grilla central: Barras mensuales + Géneros predominantes */}
+      {/* Grilla central: Barras por día + Géneros predominantes */}
       <section className="estadisticas-graficos-grid">
         <div className="estadisticas-card grafica-mensual">
           <div className="estadisticas-card-header">
-            <h3>Tu escucha mes a mes</h3>
+            <h3>Tu escucha por día</h3>
             <p>Minutos escuchados durante {anioSeleccionado}</p>
           </div>
 
           <div className="barras-mensuales">
-            {datosMensuales.map((item) => {
+            {datosDias.map((item) => {
               const porcentaje =
-                maxMinutosMes > 0 ? Math.max((item.minutos / maxMinutosMes) * 100, 4) : 4;
-              const esMesPico = maxMinutosMes > 0 && item.minutos === maxMinutosMes;
+                maxMinutosDia > 0 ? Math.max((item.minutos / maxMinutosDia) * 100, 4) : 4;
+              const esDiaPico = maxMinutosDia > 0 && item.minutos === maxMinutosDia;
 
               return (
                 <div
-                  key={item.mes}
+                  key={item.etiqueta}
                   className="barra-columna"
-                  title={`${item.mes}: ${item.minutos.toLocaleString('es-AR')} min`}
+                  title={`${item.dia}: ${item.minutos.toLocaleString('es-AR')} min (${item.reproducciones} rep.)`}
                 >
                   <div className="barra-track">
                     <div
-                      className={`barra-relleno ${esMesPico ? 'destacada' : ''}`}
+                      className={`barra-relleno ${esDiaPico ? 'destacada' : ''}`}
                       style={{ height: `${porcentaje}%` }}
                     />
                   </div>
-                  <span className="barra-mes">{item.mes}</span>
+                  <span className="barra-mes">{item.etiqueta}</span>
                 </div>
               );
             })}

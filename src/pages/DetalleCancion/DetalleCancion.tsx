@@ -64,6 +64,42 @@ const formatearFecha = (fechaIso?: string): string => {
   });
 };
 
+const resolverAutorResena = (
+  r: any,
+  usuarioActual: { id?: number; nombre?: string; username?: string } | null,
+  resenaPropiaId?: number | null
+): string => {
+  const nombreDirecto =
+    r.nombre ||
+    r.username ||
+    r.autor ||
+    r.usuario_nombre ||
+    r.usuario_username ||
+    (typeof r.usuario === 'string' ? r.usuario : null) ||
+    r.usuario?.nombre ||
+    r.usuario?.username ||
+    r.perfil?.nombre;
+
+  if (nombreDirecto) return nombreDirecto;
+
+  const autorId = r.usuario_id ?? r.usuario?.id;
+  const esMiaPorUsuario =
+    usuarioActual &&
+    autorId !== undefined &&
+    Number(autorId) === Number(usuarioActual.id);
+  const esMiaPorId =
+    usuarioActual &&
+    resenaPropiaId !== undefined &&
+    resenaPropiaId !== null &&
+    Number(r.id) === Number(resenaPropiaId);
+
+  if (esMiaPorUsuario || esMiaPorId) {
+    return usuarioActual.nombre || usuarioActual.username || 'Usuario';
+  }
+
+  return 'Usuario';
+};
+
 const DetalleCancion: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -188,7 +224,11 @@ const DetalleCancion: React.FC = () => {
           : rawPunt?.puntuaciones ?? rawPunt?.items ?? [];
 
         const mia = user
-          ? listaPunt.find((p: any) => Number(p.usuario_id) === Number(user.id))
+          ? listaPunt.find((p: any) =>
+              p.usuario_id !== undefined
+                ? Number(p.usuario_id) === Number(user.id)
+                : true
+            )
           : listaPunt[0];
 
         if (mia) {
@@ -210,7 +250,7 @@ const DetalleCancion: React.FC = () => {
           texto: r.texto ?? '',
           fecha_creacion: r.fecha_creacion,
           fecha_actualizacion: r.fecha_actualizacion,
-          autor: r.nombre || r.username || r.usuario?.nombre || r.usuario?.username || 'Usuario',
+          autor: resolverAutorResena(r, user),
           username: r.username || r.usuario?.username,
         }));
 
@@ -218,7 +258,7 @@ const DetalleCancion: React.FC = () => {
 
         if (user) {
           const miResena = resenasMapeadas.find(
-            (r) => Number(r.usuario_id) === Number(user.id)
+            (r) => r.usuario_id !== undefined && Number(r.usuario_id) === Number(user.id)
           );
           if (miResena) {
             setTextoResena(miResena.texto);
@@ -411,13 +451,15 @@ const DetalleCancion: React.FC = () => {
       }
 
       const guardada = res?.resena ?? res;
-      if (guardada?.id) setResenaId(Number(guardada.id));
+      const idActualizado = guardada?.id ? Number(guardada.id) : resenaId;
+      if (idActualizado) setResenaId(idActualizado);
 
       // Actualizar listado de reseñas en pantalla
       const resLista = await musicaService.obtenerResenas(cancion.id);
       const lista = Array.isArray(resLista)
         ? resLista
         : resLista?.resenas ?? resLista?.reseñas ?? resLista?.items ?? [];
+
       setResenas(
         lista.map((r: any) => ({
           id: Number(r.id),
@@ -425,8 +467,8 @@ const DetalleCancion: React.FC = () => {
           texto: r.texto ?? '',
           fecha_creacion: r.fecha_creacion,
           fecha_actualizacion: r.fecha_actualizacion,
-          autor: r.nombre || r.username || 'Usuario',
-          username: r.username,
+          autor: resolverAutorResena(r, user, idActualizado),
+          username: r.username || r.usuario?.username,
         }))
       );
 
