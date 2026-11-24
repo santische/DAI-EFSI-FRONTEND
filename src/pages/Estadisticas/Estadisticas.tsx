@@ -58,6 +58,19 @@ interface EstadisticasAPI {
   topCanciones: TopCancion[];
   topGeneros: TopGenero[];
   actividadPorDia?: ActividadDia[];
+  biblioteca?: {
+    total_canciones: number;
+    favoritas: number;
+    quiero_escuchar: number;
+    escuchando: number;
+    escuchado: number;
+  };
+  interaccion?: {
+    total_puntuaciones: number;
+    promedio_puntuacion: number;
+    total_resenas: number;
+    total_colecciones: number;
+  };
 }
 
 const DIAS_CORTOS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
@@ -119,6 +132,8 @@ const Estadisticas: React.FC = () => {
   const topArtistas = datos?.topArtistas ?? [];
   const topCanciones = datos?.topCanciones ?? [];
   const topGeneros = datos?.topGeneros ?? [];
+  const biblioteca = datos?.biblioteca;
+  const interaccion = datos?.interaccion;
 
   const artistaTop = topArtistas[0]?.nombre || 'Sin datos';
   const cancionTop = topCanciones[0]?.titulo || 'Sin datos';
@@ -198,6 +213,41 @@ const Estadisticas: React.FC = () => {
         <article className="kpi-card kpi-naranja">
           <span className="kpi-valor">{generoTop}</span>
           <span className="kpi-label">género predominante</span>
+        </article>
+      </section>
+
+      {/* Biblioteca e interacción */}
+      <section className="estadisticas-kpis-grid">
+        <article className="kpi-card kpi-lila">
+          <span className="kpi-valor">{biblioteca?.total_canciones ?? 0}</span>
+          <span className="kpi-label">canciones en tu biblioteca</span>
+        </article>
+
+        <article className="kpi-card kpi-rosa">
+          <span className="kpi-valor">{biblioteca?.favoritas ?? 0}</span>
+          <span className="kpi-label">favoritas</span>
+        </article>
+
+        <article className="kpi-card kpi-amarillo">
+          <span className="kpi-valor">{biblioteca?.quiero_escuchar ?? 0}</span>
+          <span className="kpi-label">quiero escuchar</span>
+        </article>
+
+        <article className="kpi-card kpi-celeste">
+          <span className="kpi-valor">{biblioteca?.escuchando ?? 0}</span>
+          <span className="kpi-label">escuchando</span>
+        </article>
+
+        <article className="kpi-card kpi-verde">
+          <span className="kpi-valor">{biblioteca?.escuchado ?? 0}</span>
+          <span className="kpi-label">escuchadas</span>
+        </article>
+
+        <article className="kpi-card kpi-naranja">
+          <span className="kpi-valor">{interaccion?.promedio_puntuacion ?? 0} ★</span>
+          <span className="kpi-label">
+            puntuación promedio ({interaccion?.total_puntuaciones ?? 0})
+          </span>
         </article>
       </section>
 
