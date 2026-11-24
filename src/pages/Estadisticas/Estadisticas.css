@@ -1,0 +1,285 @@
+.estadisticas-container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--texto-principal, #ffffff);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ENCABEZADO */
+.estadisticas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.estadisticas-header-texto h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+.estadisticas-header-texto p {
+  color: var(--texto-secundario, #9ca3af);
+  font-size: 15px;
+  margin: 0;
+}
+
+.estadisticas-select-anio {
+  padding: 10px 16px;
+  border-radius: 12px;
+  background-color: #18181c;
+  border: 1px solid var(--borde, rgba(255, 255, 255, 0.1));
+  color: var(--texto-principal, #ffffff);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.estadisticas-select-anio:focus {
+  border-color: var(--lila, #b497ff);
+}
+
+/* GRILLA DE 6 KPIS */
+.estadisticas-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.kpi-card {
+  background-color: #18181c;
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 4px solid #b497ff;
+  min-width: 0;
+}
+
+.kpi-card.kpi-lila { border-left-color: #b497ff; }
+.kpi-card.kpi-amarillo { border-left-color: #facc15; }
+.kpi-card.kpi-rosa { border-left-color: #f4a6d7; }
+.kpi-card.kpi-celeste { border-left-color: #7dd3fc; }
+.kpi-card.kpi-verde { border-left-color: #4ade80; }
+.kpi-card.kpi-naranja { border-left-color: #fdba74; }
+
+.kpi-valor {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--texto-secundario, #9ca3af);
+}
+
+/* GRILLA CENTRAL (GRÁFICOS) */
+.estadisticas-graficos-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+}
+
+.estadisticas-card {
+  background-color: #18181c;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.estadisticas-card-header {
+  margin-bottom: 20px;
+}
+
+.estadisticas-card-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.estadisticas-card-header p {
+  font-size: 13px;
+  color: var(--texto-secundario, #9ca3af);
+  margin: 0;
+}
+
+/* BARRAS MENSUALES */
+.barras-mensuales {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  align-items: end;
+  height: 190px;
+  padding-top: 12px;
+}
+
+.barra-columna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.barra-track {
+  flex: 1;
+  width: 100%;
+  max-width: 24px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.barra-relleno {
+  width: 100%;
+  background-color: var(--lila, #b497ff);
+  border-radius: 8px;
+  transition: height 0.3s ease;
+}
+
+.barra-relleno.destacada {
+  background-color: var(--amarillo, #facc15);
+}
+
+.barra-mes {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--texto-secundario, #9ca3af);
+}
+
+/* GÉNEROS PREDOMINANTES */
+.generos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.genero-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.genero-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.genero-barra-fondo {
+  width: 100%;
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.genero-barra-progreso {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.genero-color-1 { background-color: #b497ff; }
+.genero-color-2 { background-color: #facc15; }
+.genero-color-3 { background-color: #f4a6d7; }
+.genero-color-4 { background-color: #7dd3fc; }
+.genero-color-5 { background-color: #fdba74; }
+
+/* TOP CANCIONES */
+.top-canciones-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-cancion-fila {
+  display: grid;
+  grid-template-columns: 36px 1.4fr 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  background-color: rgba(255, 255, 255, 0.02);
+  transition: background-color 0.2s ease;
+}
+
+.top-cancion-fila:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.top-cancion-rank {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--amarillo, #facc15);
+}
+
+.top-cancion-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-cancion-artista {
+  font-size: 13px;
+  color: var(--texto-secundario, #9ca3af);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-cancion-reproducciones {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lila, #b497ff);
+  white-space: nowrap;
+}
+
+.estadisticas-vacio {
+  color: var(--texto-secundario, #9ca3af);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 960px) {
+  .estadisticas-container {
+    padding: 24px;
+  }
+  .estadisticas-kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .estadisticas-graficos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .estadisticas-kpis-grid {
+    grid-template-columns: 1fr;
+  }
+  .top-cancion-fila {
+    grid-template-columns: 30px 1fr auto;
+  }
+  .top-cancion-artista {
+    display: none;
+  }
+}

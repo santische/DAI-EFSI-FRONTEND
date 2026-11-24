@@ -46,6 +46,8 @@ const GENEROS_SUGERIDOS = [
   'Alternativo',
 ];
 
+const LIMITE_ACTIVIDAD_INICIAL = 3;
+
 const extraerPreferencias = (raw: any): string[] => {
   if (Array.isArray(raw)) return raw;
   if (raw && Array.isArray(raw.generos)) return raw.generos;
@@ -123,13 +125,14 @@ const normalizarActividad = (act: any, index: number): Actividad => {
 };
 
 const Perfil: React.FC = () => {
-const { setUser } = useUser() as any;
+  const { setUser } = useUser() as any;
 
   const [perfil, setPerfil] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const [mostrarTodaActividad, setMostrarTodaActividad] = useState<boolean>(false);
 
   const [nombreEdit, setNombreEdit] = useState<string>('');
   const [bioEdit, setBioEdit] = useState<string>('');
@@ -151,7 +154,7 @@ const { setUser } = useUser() as any;
       const [resPerfil, resFavoritos, resActividad] = await Promise.all([
         perfilService.obtenerPerfil(),
         bibliotecaService.obtenerFavoritos().catch(() => []),
-        perfilService.obtenerActividadPerfil(10, 1).catch(() => []),
+        perfilService.obtenerActividadPerfil(20, 1).catch(() => []),
       ]);
 
       const rawUsuario =
@@ -257,8 +260,7 @@ const { setUser } = useUser() as any;
           : prev
       );
 
-      // Actualiza también el usuario en el Sidebar y Navbar
-      setUser((prev: any) =>
+      setUser?.((prev: any) =>
         prev
           ? {
               ...prev,
@@ -301,6 +303,11 @@ const { setUser } = useUser() as any;
   const listaGeneros = isEditing
     ? perfil.generosDisponibles || GENEROS_SUGERIDOS
     : perfil.preferencias;
+  const avatarVisible = isEditing ? avatarEdit.trim() : perfil.avatarUrl;
+
+  const actividadesVisibles = mostrarTodaActividad
+    ? perfil.actividad
+    : perfil.actividad.slice(0, LIMITE_ACTIVIDAD_INICIAL);
 
   return (
     <div className="perfil-container">
@@ -311,16 +318,15 @@ const { setUser } = useUser() as any;
             Editá tus datos personales y preferencias musicales.
           </p>
         </div>
-        <div className="avatar-badge-top">{inicial}</div>
       </header>
 
       {error && <div className="perfil-alerta-error">{error}</div>}
 
       <section className="perfil-card-principal">
         <div className="perfil-info-wrapper">
-          {perfil.avatarUrl && !isEditing ? (
+          {avatarVisible ? (
             <img
-              src={perfil.avatarUrl}
+              src={avatarVisible}
               alt={perfil.nombre}
               className="perfil-avatar-img"
             />
@@ -355,6 +361,7 @@ const { setUser } = useUser() as any;
                     type="text"
                     value={avatarEdit}
                     onChange={(e) => setAvatarEdit(e.target.value)}
+                    placeholder="https://..."
                     className="form-input"
                   />
                 </div>
@@ -368,7 +375,9 @@ const { setUser } = useUser() as any;
             )}
 
             <div className="perfil-preferencias">
-              <span className="preferencias-titulo">Mis géneros</span>
+              <span className="preferencias-titulo">
+                Mis géneros {isEditing && '(tocá para elegir)'}
+              </span>
               {listaGeneros.length === 0 ? (
                 <p className="texto-vacio">
                   Sin géneros seleccionados. Hacé clic en "Editar perfil" para elegir.
@@ -386,7 +395,7 @@ const { setUser } = useUser() as any;
                           isEditing ? 'genero-pill--editable' : ''
                         } ${isEditing && activo ? 'genero-pill--activo' : ''}`}
                       >
-                        {genero}
+                        {isEditing && activo ? `✓ ${genero}` : genero}
                       </button>
                     );
                   })}
@@ -406,13 +415,24 @@ const { setUser } = useUser() as any;
               Editar perfil
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={handleCancelarEdicion}
-              className="btn-cancelar"
-            >
-              Cancelar
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleGuardarCambios}
+                disabled={saving}
+                className="btn-guardar"
+              >
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelarEdicion}
+                disabled={saving}
+                className="btn-cancelar"
+              >
+                Cancelar
+              </button>
+            </>
           )}
         </div>
       </section>
@@ -450,40 +470,39 @@ const { setUser } = useUser() as any;
           {perfil.actividad.length === 0 ? (
             <p className="texto-vacio">No hay actividad registrada.</p>
           ) : (
-            <div className="actividad-lista">
-              {perfil.actividad.map((act) => (
-                <div key={act.id} className="actividad-item">
-                  <div className="actividad-info">
-                    <span
-                      className={`actividad-dot ${
-                        act.esReciente ? 'actividad-dot--reciente' : ''
-                      }`}
-                    />
-                    <div>
-                      <p className="actividad-accion">{act.accion}</p>
-                      <p className="actividad-detalle">{act.detalle}</p>
+            <>
+              <div className="actividad-lista">
+                {actividadesVisibles.map((act) => (
+                  <div key={act.id} className="actividad-item">
+                    <div className="actividad-info">
+                      <span
+                        className={`actividad-dot ${
+                          act.esReciente ? 'actividad-dot--reciente' : ''
+                        }`}
+                      />
+                      <div>
+                        <p className="actividad-accion">{act.accion}</p>
+                        <p className="actividad-detalle">{act.detalle}</p>
+                      </div>
                     </div>
+                    <span className="actividad-fecha">{act.fecha}</span>
                   </div>
-                  <span className="actividad-fecha">{act.fecha}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {perfil.actividad.length > LIMITE_ACTIVIDAD_INICIAL && (
+                <button
+                  type="button"
+                  className="btn-ver-mas-actividad"
+                  onClick={() => setMostrarTodaActividad((prev) => !prev)}
+                >
+                  {mostrarTodaActividad ? 'Ver menos' : 'Ver más'}
+                </button>
+              )}
+            </>
           )}
         </section>
       </div>
-
-      {isEditing && (
-        <div className="perfil-footer-acciones">
-          <button
-            type="button"
-            onClick={handleGuardarCambios}
-            disabled={saving}
-            className="btn-guardar"
-          >
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </button>
-        </div>
-      )}
     </div>
   );
 };

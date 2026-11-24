@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import PlaylistCard, { Playlist } from '../../componentes/playlists/PlaylistCard/PlaylistCard';
+import PlaylistCard from '../../componentes/playlists/PlaylistCard/PlaylistCard';
+import { Coleccion } from '../../interfaces/interfaz';
 import FormularioPlaylist from '../../componentes/playlists/FormularioPlaylist/FormularioPlaylist';
 import Buscador from '../../componentes/comunes/Buscador/Buscador';
 import Modal from '../../componentes/comunes/Modal/Modal';
@@ -11,7 +12,7 @@ import './Playlists.css';
 
 const Playlists: React.FC = () => {
   const { user } = useUser();
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+ const [playlists, setPlaylists] = useState<Coleccion[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -414,3 +414,92 @@
     grid-template-columns: 1fr;
   }
 }
+/* Contenedor de botones arriba a la derecha */
+.perfil-acciones-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.btn-guardar {
+  background-color: var(--lila, #b497ff);
+  color: #121216;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.btn-guardar:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.btn-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Chips compactos de géneros en fila */
+.generos-lista {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.genero-pill {
+  width: auto !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--texto-secundario, #9ca3af);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: default;
+  transition: all 0.15s ease;
+}
+
+.genero-pill--editable {
+  cursor: pointer;
+}
+
+.genero-pill--editable:hover {
+  border-color: var(--lila, #b497ff);
+  color: #ffffff;
+}
+
+.genero-pill--activo {
+  background-color: rgba(180, 151, 255, 0.22);
+  border-color: var(--lila, #b497ff);
+  color: #ffffff;
+}
+
+.btn-ver-mas-actividad {
+  margin-top: 14px;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--lila, #b497ff);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-ver-mas-actividad:hover {
+  background-color: rgba(180, 151, 255, 0.12);
+  border-color: rgba(180, 151, 255, 0.4);
+}

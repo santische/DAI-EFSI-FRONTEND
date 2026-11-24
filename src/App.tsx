@@ -47,6 +47,8 @@ const App: React.FC = () => {
             {/* Rutas Protegidas dentro del MainLayout */}
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
+              <Route path="/playlist/:id" element={<DetallePlaylist />} />
+              <Route path="/playlists" element={<Playlists />} />
                 <Route path="/" element={<Home />} />
                 <Route path="/explorar" element={<Explorar />} />
                 <Route path="/cancion/:id" element={<DetalleCancion />} />
