@@ -242,7 +242,7 @@ const Perfil: React.FC = () => {
         nombre: nombreLimpio,
         bio: bioLimpia,
         foto: fotoLimpia,
-        preferencias: preferenciasEdit,
+        preferencias: { generos: preferenciasEdit },
       });
 
       setPerfil((prev) =>
